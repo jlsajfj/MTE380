@@ -21,7 +21,36 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
+/*
+	In CN7:
 
+    ADC1/0 – GPIO28
+    ADC1/1 – GPIO30
+    ADC1/4 – GPIO32
+    ADC1/8 – GPIO34
+    ADC1/12 – GPIO35
+    ADC1/11 – GPIO36
+    ADC1/13 – GPIO37
+    ADC1/10 – GPIO38
+
+In CN10:
+
+    ADC1/15 – GPIO6
+    ADC1/5 – GPIO11
+    ADC1/6 – GPIO13
+    ADC1/7 – GPIO15
+    ADC1/9 – GPIO24
+    ADC1/14 – GPIO34
+
+In CN8:
+
+    A0 – GPIO1
+    A1 – GPIO2
+    A2 – GPIO3
+    A3 – GPIO4
+    A4 – GPIO5
+    A5 – GPIO6
+*/
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
