@@ -53,5 +53,5 @@ bool motor_getFault(void) {
 	return false;
 }
 
-void motor_setEnabled(bool) {
+void motor_setEnabled(bool enabled) {
 }

@@ -61,4 +61,5 @@ Release/
 # STM32 git ignore
 *.mxproject
 
-
+# Platform IO files
+.pio/
