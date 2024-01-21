@@ -51,8 +51,9 @@ void motor_setFlip(motor_E motor, bool flip) {
 }
 
 bool motor_getFault(void) {
-	return false;
+	return !HAL_GPIO_ReadPin(MtrDvr_Fault_GPIO_Port, MtrDvr_Fault_Pin);
 }
 
 void motor_setEnabled(bool enabled) {
+	HAL_GPIO_WritePin(MtrDvr_EN_GPIO_Port, MtrDvr_EN_Pin, enabled ? GPIO_PIN_RESET : GPIO_PIN_SET);
 }

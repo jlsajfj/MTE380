@@ -103,9 +103,10 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
 	motor_setSpeed(M1, 32767);
 	motor_setSpeed(M2, 32767);
-    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
