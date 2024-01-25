@@ -27,16 +27,22 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "motor.h"
+
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef enum {
+  ADC_STATUS_INVALID,
+  ADC_STATUS_STARTED,
+  ADC_STATUS_FINISHED,
+} ADC_status_E;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define ADC_COUNT 6
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -47,7 +53,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+static uint16_t adc_result[ADC_COUNT] = {0};
+static volatile ADC_status_E adc_status = ADC_STATUS_INVALID;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,6 +103,7 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   motor_init();
+  motor_setFlip(M1, true);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -105,8 +113,27 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	motor_setSpeed(M1, 32767);
-	motor_setSpeed(M2, 32767);
+    switch(adc_status) {
+      case ADC_STATUS_FINISHED:
+        for(size_t i = 0; i < ADC_COUNT; i++) {
+          char msg[6] = {0};
+          snprintf(msg, sizeof(msg), "%5d", adc_result[i]);
+          HAL_UART_Transmit(&huart2, (uint8_t*) msg, sizeof(msg) - 1, 1000);
+        }
+        HAL_UART_Transmit(&huart2, (uint8_t*) "\n", 1, 1000);
+
+      // fallthrough
+      case ADC_STATUS_INVALID:
+        HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_result, ADC_COUNT);
+        adc_status = ADC_STATUS_STARTED;
+        break;
+
+      default:
+        break;
+    }
+
+    motor_setSpeed(M1, 32767);
+    motor_setSpeed(M2, 32767);
   }
   /* USER CODE END 3 */
 }
@@ -157,7 +184,9 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+  adc_status = ADC_STATUS_FINISHED;
+}
 /* USER CODE END 4 */
 
 /**
@@ -187,7 +216,7 @@ void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+     printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
