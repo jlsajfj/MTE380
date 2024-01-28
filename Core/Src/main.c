@@ -27,6 +27,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "motor.h"
+#include "flash.h"
+#include "helper.h"
+
+#include "stm32f4xx_hal.h"
 
 #include <stdio.h>
 /* USER CODE END Includes */
@@ -38,11 +42,21 @@ typedef enum {
   ADC_STATUS_STARTED,
   ADC_STATUS_FINISHED,
 } ADC_status_E;
+
+typedef enum {
+  STATE_INIT,
+  STATE_CALIBRATE_WHITE,
+  STATE_CALIBRATE_BLACK,
+  STATE_STOP,
+  STATE_RUN,
+  STATE_COUNT,
+} state_E;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define ADC_COUNT 6
+#define ALPHA (0.9)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -55,6 +69,15 @@ typedef enum {
 /* USER CODE BEGIN PV */
 static uint16_t adc_result[ADC_COUNT] = {0};
 static volatile ADC_status_E adc_status = ADC_STATUS_INVALID;
+static uint16_t adc_white[ADC_COUNT] = {65535};
+static uint16_t adc_black[ADC_COUNT] = {0};
+
+static state_E state = STATE_STOP;
+static bool btn_dbc = false;
+
+static double input_avg = 0.0f;
+
+static void run_motor(void);
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,7 +126,8 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   motor_init();
-  motor_setFlip(M1, true);
+  motor_setFlip(M2, true);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -113,29 +137,128 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    switch(adc_status) {
-      case ADC_STATUS_FINISHED:
-        for(size_t i = 0; i < ADC_COUNT; i++) {
-          char msg[6] = {0};
-          snprintf(msg, sizeof(msg), "%5d", adc_result[i]);
-          HAL_UART_Transmit(&huart2, (uint8_t*) msg, sizeof(msg) - 1, 1000);
-        }
-        HAL_UART_Transmit(&huart2, (uint8_t*) "\n", 1, 1000);
+    uint32_t tick = HAL_GetTick();
+    char msg[11] = {0};
+    bool btn = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_SET;
+    bool btn_rise = btn_dbc && !btn_dbc;
 
-      // fallthrough
-      case ADC_STATUS_INVALID:
-        HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_result, ADC_COUNT);
-        adc_status = ADC_STATUS_STARTED;
+    switch(state) {
+      case STATE_INIT:
+        if(btn_rise) state = STATE_CALIBRATE_WHITE;
+        msg[0] = '.';
+        msg[1] = '\n';
+        HAL_UART_Transmit(&huart2, (uint8_t*) msg, 2, 1000);
+        state = STATE_CALIBRATE_WHITE;
+        break;
+
+      case STATE_CALIBRATE_WHITE:
+        if(btn_rise) {
+          switch(adc_status) {
+            case ADC_STATUS_FINISHED:
+            case ADC_STATUS_INVALID:
+              HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_result, ADC_COUNT);
+              adc_status = ADC_STATUS_STARTED;
+              break;
+
+            default:
+              break;
+          }
+        }
+        if(adc_status == ADC_STATUS_FINISHED) {
+            for(size_t i = 0; i < ADC_COUNT; i++) {
+              adc_white[i] = adc_result[i];
+              size_t len = snprintf(msg, sizeof(msg), "% 10d", adc_result[i]);
+              HAL_UART_Transmit(&huart2, (uint8_t*) msg, len, 1000);
+            }
+            msg[0] = '\n';
+            HAL_UART_Transmit(&huart2, (uint8_t*) msg, 1, 1000);
+            state = STATE_CALIBRATE_BLACK;
+        }
+        break;
+
+      case STATE_CALIBRATE_BLACK:
+        if(btn_rise) {
+          switch(adc_status) {
+            case ADC_STATUS_FINISHED:
+            case ADC_STATUS_INVALID:
+              HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_result, ADC_COUNT);
+              adc_status = ADC_STATUS_STARTED;
+              break;
+
+            default:
+              break;
+          }
+        }
+        if(adc_status == ADC_STATUS_FINISHED) {
+            for(size_t i = 0; i < ADC_COUNT; i++) {
+              adc_black[i] = adc_result[i];
+              size_t len = snprintf(msg, sizeof(msg), "% 10d", adc_result[i]);
+              HAL_UART_Transmit(&huart2, (uint8_t*) msg, len, 1000);
+            }
+            msg[0] = '\n';
+            HAL_UART_Transmit(&huart2, (uint8_t*) msg, 1, 1000);
+            state = STATE_STOP;
+        }
+        break;
+
+      case STATE_STOP:
+        if(btn_rise) state = STATE_RUN;
+        break;
+
+
+      case STATE_RUN:
+        switch(adc_status) {
+          case ADC_STATUS_FINISHED:
+          case ADC_STATUS_INVALID:
+            HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_result, ADC_COUNT);
+            adc_status = ADC_STATUS_STARTED;
+            break;
+
+          default:
+            break;
+        }
+        run_motor();
         break;
 
       default:
         break;
     }
-
-    motor_setSpeed(M1, 32767);
-    motor_setSpeed(M2, 32767);
   }
   /* USER CODE END 3 */
+}
+
+static void run_motor(void) {
+    switch(adc_status) {
+      case ADC_STATUS_FINISHED:
+      {
+        double new_input_avg = 0;
+        for(size_t i = 0; i < ADC_COUNT; i++) {
+          double normalized = NORMALIZE((double) adc_result[i], (double) adc_black[i], (double) adc_white[i]);
+          new_input_avg += (i - 2.5) * SATURATE(normalized, 0, 1);
+        }
+        input_avg = input_avg * ALPHA + new_input_avg * (1 - ALPHA);
+      }
+
+      default:
+        break;
+    }
+
+    char msg[15] = {0};
+    size_t len = snprintf(msg, sizeof(msg), "%6.6f\n", input_avg);
+    HAL_UART_Transmit(&huart2, (uint8_t*) msg, len, 1000);
+
+    double Kp = 1000;
+
+    double diff = input_avg * Kp;
+    //int16_t speed = 20000;
+    int16_t speed = 0;
+    if(diff > 0) {
+      motor_setSpeed(M1, SATURATE(speed - diff, 0, speed));
+      motor_setSpeed(M2, speed);
+    } else {
+      motor_setSpeed(M1, speed);
+      motor_setSpeed(M2, SATURATE(speed + diff, 0, speed));
+    }
 }
 
 /**
