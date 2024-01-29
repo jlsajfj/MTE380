@@ -30,20 +30,25 @@ void motor_init(void) {
 		motor_definition_S *motor_def = &motors[motor];
 		HAL_TIM_PWM_Start(motor_def->pwm_timer, motor_def->pwm_timer_channel);
 	}
+
+	motor_setFlip(M2, true);
+	motor_setEnabled(true);
+
 	motor_initialized = true;
 }
 
-void motor_setSpeed(motor_E motor, int16_t speed) {
+void motor_setSpeed(motor_E motor, double speed) {
 	if(!motor_initialized) return;
 
 	const motor_definition_S *motor_def = &motors[motor];
 	const bool reversed = (speed < 0) != motor_flip[motor];
-	if(speed < 0) speed = -speed;
+	if(speed < 0.0) speed = -speed;
+	if(speed > 1.0) speed = 1.0;
 
 	HAL_GPIO_WritePin(motor_def->dir_port, motor_def->dir_pin, reversed ? GPIO_PIN_SET : GPIO_PIN_RESET);
 
 	// currently setup for the PWM to take a number from 0 - 100
-	*motor_def->pwm_reg = (int)(((float)speed/(1<<15))*100);
+	*motor_def->pwm_reg = (uint32_t)(speed*100);
 }
 
 void motor_setFlip(motor_E motor, bool flip) {

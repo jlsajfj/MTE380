@@ -44,8 +44,8 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 96K
-  FLASH    (rx)   : ORIGIN = 0x8000000,   LENGTH = 128K
+  RAM    (xrw)     : ORIGIN = 0x20000000,  LENGTH = 96K
+  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 128K
   USER_FLASH (xrw) : ORIGIN = 0x8060000,   LENGTH = 128K
 }
 
@@ -147,7 +147,7 @@ SECTIONS
 
   } >RAM AT> FLASH
 
-  .user_flash :
+  .user_flash (NOLOAD) :
   {
     . = ALIGN(4);
     *(.user_flash)
