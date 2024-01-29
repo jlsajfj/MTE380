@@ -55,12 +55,10 @@ void command_run(void) {
 
     } else if(MATCH_CMD("save")) {
       flash_erase();
-      sensor_calibrate_save();
       config_save();
       puts("saved");
 
     } else if(MATCH_CMD("load")) {
-      sensor_calibrate_load();
       config_load();
 
     } else if(MATCH_CMD("erase")) {

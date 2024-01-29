@@ -106,8 +106,6 @@ int main(void)
   command_init();
   sensor_init();
   motor_init();
-
-  sensor_calibrate_load();
   config_load();
 
   /* USER CODE END 2 */

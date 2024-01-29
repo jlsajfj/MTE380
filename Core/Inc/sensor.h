@@ -11,7 +11,5 @@ double sensor_getResult(void);
 
 void sensor_calibrate_white(void);
 void sensor_calibrate_black(void);
-void sensor_calibrate_load(void);
-void sensor_calibrate_save(void);
 
 #endif

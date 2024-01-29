@@ -23,16 +23,6 @@ typedef enum {
   SENSOR_STATE_CAL_BLACK,
 } sensor_state_E;
 
-typedef struct {
-  double white[ADC_COUNT];
-  double black[ADC_COUNT];
-} sensor_calib_S;
-
-typedef union {
-  sensor_calib_S data;
-  uint8_t raw[sizeof(sensor_calib_S)];
-} sensor_calib_U;
-
 static const double sensor_gains[ADC_COUNT] = {-3.5, -1.0, -0.5, 0.5, 1, 3.5};
 
 static sensor_state_E sensor_state = SENSOR_STATE_RUNNING;
@@ -40,8 +30,6 @@ static sensor_state_E sensor_state = SENSOR_STATE_RUNNING;
 static volatile adc_status_E adc_status = ADC_STATUS_INVALID;
 static uint16_t adc_reading_raw[ADC_COUNT] = {0};
 static double adc_reading[ADC_COUNT] = {0.0};
-
-static sensor_calib_U sensor_calib = {0};
 
 static double sensor_result = 0.0;
 
@@ -61,24 +49,28 @@ void sensor_run(void) {
         case SENSOR_STATE_RUNNING:
           sensor_result = 0.0;
           for(uint16_t i = 0; i < ADC_COUNT; i++) {
-            double normalized = NORMALIZE(adc_reading[i], sensor_calib.data.black[i], sensor_calib.data.white[i]);
+            double white = config_get(CONFIG_ENTRY_SENSOR_WHITE_0 + i);
+            double black = config_get(CONFIG_ENTRY_SENSOR_BLACK_0 + i);
+            double normalized = NORMALIZE(adc_reading[i], black, white);
             sensor_result += SATURATE(normalized, 0, 1) * sensor_gains[i];
           }
           break;
 
         case SENSOR_STATE_CAL_WHITE:
+          puts("white: ");
           for(uint16_t i = 0; i < ADC_COUNT; i++) {
-              sensor_calib.data.white[i] = adc_reading[i];
-              printf("white: %11.4f", adc_reading[i]);
+              config_set(CONFIG_ENTRY_SENSOR_WHITE_0 + i, adc_reading[i]);
+              printf("%11.4f", adc_reading[i]);
           }
           puts("");
           sensor_state = SENSOR_STATE_RUNNING;
           break;
 
         case SENSOR_STATE_CAL_BLACK:
+          puts("black: ");
           for(uint16_t i = 0; i < ADC_COUNT; i++) {
-              sensor_calib.data.black[i] = adc_reading[i];
-              printf("black: %11.4f", adc_reading[i]);
+              config_set(CONFIG_ENTRY_SENSOR_BLACK_0 + i, adc_reading[i]);
+              printf("%11.4f", adc_reading[i]);
           }
           puts("");
           sensor_state = SENSOR_STATE_RUNNING;
@@ -111,24 +103,6 @@ void sensor_calibrate_white(void) {
 
 void sensor_calibrate_black(void) {
   sensor_state = SENSOR_STATE_CAL_BLACK;
-}
-
-void sensor_calibrate_load(void) {
-  flash_read(FLASH_ADDR_SENSOR_CALIB, sensor_calib.raw, sizeof(sensor_calib));
-
-  printf("white: ");
-  for(uint16_t i = 0; i < ADC_COUNT; i++) {
-    printf("% 11.4f", sensor_calib.data.white[i]);
-  }
-  printf("\nblack: ");
-  for(uint16_t i = 0; i < ADC_COUNT; i++) {
-    printf("% 11.4f", sensor_calib.data.black[i]);
-  }
-  puts("");
-}
-
-void sensor_calibrate_save(void) {
-  flash_write(FLASH_ADDR_SENSOR_CALIB, sensor_calib.raw, sizeof(sensor_calib));
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
