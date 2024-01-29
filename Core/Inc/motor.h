@@ -1,10 +1,3 @@
-/*
- * DualMAX14870MotorShield.h
- *
- *  Created on: Jan 19, 2024
- *      Author: croni
- */
-
 #ifndef INC_MOTOR_H_
 #define INC_MOTOR_H_
 

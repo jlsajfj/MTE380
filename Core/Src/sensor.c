@@ -23,8 +23,6 @@ typedef enum {
   SENSOR_STATE_CAL_BLACK,
 } sensor_state_E;
 
-static const double sensor_gains[ADC_COUNT] = {-3.5, -1.0, -0.5, 0.5, 1, 3.5};
-
 static sensor_state_E sensor_state = SENSOR_STATE_RUNNING;
 
 static volatile adc_status_E adc_status = ADC_STATUS_INVALID;
@@ -51,8 +49,9 @@ void sensor_run(void) {
           for(uint16_t i = 0; i < ADC_COUNT; i++) {
             double white = config_get(CONFIG_ENTRY_SENSOR_WHITE_0 + i);
             double black = config_get(CONFIG_ENTRY_SENSOR_BLACK_0 + i);
+            double gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0 + i);
             double normalized = NORMALIZE(adc_reading[i], black, white);
-            sensor_result += SATURATE(normalized, 0, 1) * sensor_gains[i];
+            sensor_result += SATURATE(normalized, 0, 1) * gain;
           }
           break;
 
