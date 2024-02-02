@@ -28,6 +28,7 @@ void control_run(void) {
       double u = input * kp;
 
       double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
+      speed = SATURATE(speed, -1.0 + u/2, 1.0 - u/2);
 
       if(u > 0) {
         motor_setSpeed(M1, speed - u / 2);
