@@ -33,7 +33,7 @@ void command_run(void) {
   uint32_t tick = HAL_GetTick();
 
   bool btn = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET;
-  bool btn_rise = btn && (tick - btn_dbc) > 100;
+  bool btn_rise = btn && (tick - btn_dbc) > 200;
   if(btn) btn_dbc = tick;
 
   if(btn_rise) {
@@ -48,6 +48,8 @@ void command_run(void) {
       control_start();
     } else if(MATCH_CMD("stop")) {
       control_stop();
+    } else if(MATCH_CMD("debug")) {
+      control_debug();
     } else if(MATCH_CMD("white")) {
       sensor_calibrate_white();
     } else if(MATCH_CMD("black")) {
@@ -92,7 +94,7 @@ void command_run(void) {
 
       printf("%16s = %lf\n", rx_buff + name_start, value);
     } else {
-      puts("stop, white, black, save, load, reset, boot, set, get");
+      puts("start, stop, debug, white, black, save, load, reset, boot, set, get");
     }
 
 #undef MATCH_CMD

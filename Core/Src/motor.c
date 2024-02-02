@@ -44,7 +44,7 @@ void motor_setSpeed(motor_E motor, double speed) {
 	HAL_GPIO_WritePin(motor_def->dir_port, motor_def->dir_pin, reversed ? GPIO_PIN_SET : GPIO_PIN_RESET);
 
 	// currently setup for the PWM to take a number from 0 - 100
-	*motor_def->pwm_reg = (uint32_t)(speed * config_get(CONFIG_ENTRY_MOTOR_SPEED) * 100);
+	*motor_def->pwm_reg = (uint32_t)(speed * 100);
 }
 
 void motor_setFlip(motor_E motor, bool flip) {

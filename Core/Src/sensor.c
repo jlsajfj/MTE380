@@ -49,7 +49,14 @@ void sensor_run(void) {
           for(uint16_t i = 0; i < ADC_COUNT; i++) {
             double white = config_get(CONFIG_ENTRY_SENSOR_WHITE_0 + i);
             double black = config_get(CONFIG_ENTRY_SENSOR_BLACK_0 + i);
-            double gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0 + i);
+
+            double gain = 1.0;
+            if(i <= 2) {
+              gain = -config_get(CONFIG_ENTRY_SENSOR_GAIN_2 - i);
+            } else {
+              gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0 - 3 + i);
+            }
+
             double normalized = NORMALIZE(adc_reading[i], black, white);
             sensor_result += SATURATE(normalized, 0, 1) * gain;
           }
