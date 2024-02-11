@@ -1,7 +1,6 @@
 #include "motor.h"
 #include "main.h"
 #include "tim.h"
-#include "config.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -27,7 +26,6 @@ void motor_init(void) {
 		HAL_TIM_PWM_Start(motor_def->pwm_timer, motor_def->pwm_timer_channel);
 	}
 
-	motor_setFlip(M2, true);
 	motor_setEnabled(true);
 
 	motor_initialized = true;

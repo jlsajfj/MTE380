@@ -2,6 +2,8 @@
 #include "motor.h"
 #include "sensor.h"
 #include "config.h"
+#include "helper.h"
+#include "pid.h"
 
 #include <stdio.h>
 
@@ -13,6 +15,19 @@ typedef enum {
 
 static control_state_E control_state = CONTROL_STOP;
 
+static pid_data_S pid = {
+   .kp_config = CONFIG_ENTRY_CTRL_KP,
+   .ki_config = CONFIG_ENTRY_CTRL_KI,
+   .kd_config = CONFIG_ENTRY_CTRL_KD,
+
+   .output_max =  2.0,
+   .output_min = -2.0,
+};
+
+void control_init(void) {
+  pid_init(&pid);
+}
+
 void control_run(void) {
   switch(control_state) {
     case CONTROL_STOP:
@@ -22,10 +37,8 @@ void control_run(void) {
 
     case CONTROL_RUNNING:
     {
-      double kp = config_get(CONFIG_ENTRY_CTRL_KP);
-
       double input = sensor_getResult();
-      double u = input * kp;
+      double u = pid_update(&pid, input);
 
       double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
       speed = SATURATE(speed, -1.0 + u/2, 1.0 - u/2);

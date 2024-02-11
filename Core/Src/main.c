@@ -103,10 +103,11 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
+  config_load();
   command_init();
   sensor_init();
   motor_init();
-  config_load();
+  control_init();
 
   /* USER CODE END 2 */
 

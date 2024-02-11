@@ -45,6 +45,8 @@ void sensor_run(void) {
 
       switch(sensor_state) {
         case SENSOR_STATE_RUNNING:
+        {
+          double total_gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0) + config_get(CONFIG_ENTRY_SENSOR_GAIN_1) + config_get(CONFIG_ENTRY_SENSOR_GAIN_2);
           sensor_result = 0.0;
           for(uint16_t i = 0; i < ADC_COUNT; i++) {
             double white = config_get(CONFIG_ENTRY_SENSOR_WHITE_0 + i);
@@ -58,9 +60,10 @@ void sensor_run(void) {
             }
 
             double normalized = NORMALIZE(adc_reading[i], black, white);
-            sensor_result += SATURATE(normalized, 0, 1) * gain;
+            sensor_result += SATURATE(normalized, 0, 1) * gain / total_gain;
           }
           break;
+        }
 
         case SENSOR_STATE_CAL_WHITE:
           puts("white: ");

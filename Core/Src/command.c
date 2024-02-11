@@ -65,6 +65,7 @@ void command_run(void) {
 
     } else if(MATCH_CMD("erase")) {
       flash_erase();
+      config_load();
       puts("erased");
 
     } else if(MATCH_CMD("reset")) {
@@ -90,9 +91,12 @@ void command_run(void) {
       uint16_t name_end = name_start; while(!isspace(rx_buff[name_end]) && name_end < rx_len) name_end++;
       rx_buff[name_end] = '\0';
 
-      double value = config_getByName(rx_buff + name_start);
-
-      printf("%16s = %lf\n", rx_buff + name_start, value);
+      if(name_end == name_start) {
+        config_print();
+      } else {
+        double value = config_getByName(rx_buff + name_start);
+        printf("%16s = %lf\n", rx_buff + name_start, value);
+      }
     } else {
       puts("start, stop, debug, white, black, save, load, reset, boot, set, get");
     }

@@ -7,13 +7,13 @@
 #include <math.h>
 
 typedef struct {
-        config_id_E id;
-        const char *name;
-        double default_value;
+  config_id_E id;
+  const char *name;
+  double default_value;
 } config_entry_S;
 
 static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
-  [CONFIG_ENTRY_CTRL_KP]        = { CONFIG_ENTRY_CTRL_KP,         "kp",         1.0  },
+  [CONFIG_ENTRY_RESERVED]       = { CONFIG_ENTRY_RESERVED,        "",           1.0  },
   [CONFIG_ENTRY_SENSOR_ALPHA]   = { CONFIG_ENTRY_SENSOR_ALPHA,    "alpha",      0.2  },
   [CONFIG_ENTRY_SENSOR_GAIN_0]  = { CONFIG_ENTRY_SENSOR_GAIN_0,   "gain_0",     0.5  },
   [CONFIG_ENTRY_SENSOR_GAIN_1]  = { CONFIG_ENTRY_SENSOR_GAIN_1,   "gain_1",     1.5  },
@@ -31,6 +31,9 @@ static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
   [CONFIG_ENTRY_SENSOR_BLACK_4] = { CONFIG_ENTRY_SENSOR_BLACK_4,  "black_4", 2000.0  },
   [CONFIG_ENTRY_SENSOR_BLACK_5] = { CONFIG_ENTRY_SENSOR_BLACK_5,  "black_5", 2000.0  },
   [CONFIG_ENTRY_MOTOR_SPEED]    = { CONFIG_ENTRY_MOTOR_SPEED,     "speed",      1.0  },
+  [CONFIG_ENTRY_CTRL_KP]        = { CONFIG_ENTRY_CTRL_KP,         "kp",         1.0  },
+  [CONFIG_ENTRY_CTRL_KI]        = { CONFIG_ENTRY_CTRL_KP,         "ki",         1.0  },
+  [CONFIG_ENTRY_CTRL_KD]        = { CONFIG_ENTRY_CTRL_KP,         "kd",         1.0  },
 };
 
 static union {
@@ -75,6 +78,12 @@ void config_load(void) {
 
 void config_save(void) {
   flash_write(FLASH_ADDR_CONFIG, config_values.raw, sizeof(config_values));
+}
+
+void config_print(void) {
+  for(uint16_t i = 0; i < CONFIG_ENTRY_COUNT; i++) {
+    printf("%16s = %lf\n", config_entries[i].name, config_values.values[i]);
+  }
 }
 
 static config_id_E config_getIdByName(char *name) {
