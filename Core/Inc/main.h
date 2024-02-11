@@ -65,6 +65,8 @@ void Error_Handler(void);
 #define USART_RX_GPIO_Port GPIOA
 #define MtrDvr_Fault_Pin GPIO_PIN_6
 #define MtrDvr_Fault_GPIO_Port GPIOA
+#define Servo_PWM_Pin GPIO_PIN_10
+#define Servo_PWM_GPIO_Port GPIOB
 #define MtrDvr_PWM1_Pin GPIO_PIN_7
 #define MtrDvr_PWM1_GPIO_Port GPIOC
 #define MtrDvr_Dir1_Pin GPIO_PIN_8
