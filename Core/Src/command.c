@@ -40,6 +40,11 @@ void command_run(void) {
     control_toggle();
   }
 
+  bool servo_jumper = HAL_GPIO_ReadPin(Servo_Jumper_GPIO_Port, Servo_Jumper_Pin) == GPIO_PIN_SET;
+  control_servo_mode(servo_jumper);
+
+
+
 #define MATCH_CMD(x) (strncmp((x), (const char*) rx_buff, rx_len) == 0)
 #define MATCH_CMD_N(x, n) (strncmp((x), (const char*) rx_buff, MIN((n), rx_len)) == 0)
 

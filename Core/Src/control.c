@@ -4,13 +4,17 @@
 #include "config.h"
 #include "helper.h"
 #include "pid.h"
+#include "servo.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 
 typedef enum {
   CONTROL_STOP,
   CONTROL_RUNNING,
   CONTROL_DEBUG,
+  CONTROL_SERVO_LOCK,
+  CONTROL_SERVO_UNLOCK,
 } control_state_E;
 
 static control_state_E control_state = CONTROL_STOP;
@@ -57,6 +61,18 @@ void control_run(void) {
     case CONTROL_DEBUG:
       printf("%lf\n", sensor_getResult());
       break;
+
+    case CONTROL_SERVO_LOCK:
+    {
+    	servo_setLocked();
+    	break;
+    }
+
+    case CONTROL_SERVO_UNLOCK:
+    {
+    	servo_setUnlocked();
+    	break;
+    }
   }
 }
 
@@ -77,9 +93,23 @@ void control_toggle(void) {
     case CONTROL_STOP:
       control_state = CONTROL_RUNNING;
       break;
+    case CONTROL_SERVO_UNLOCK:
+      control_state = CONTROL_SERVO_LOCK;
+      break;
+    case CONTROL_SERVO_LOCK:
+      control_state = CONTROL_SERVO_UNLOCK;
+      break;
     case CONTROL_RUNNING:
     default:
       control_state = CONTROL_STOP;
       break;
   }
+}
+
+void control_servo_mode(bool servo_mode) {
+	if (servo_mode) {
+		control_state = CONTROL_SERVO_UNLOCK;
+	} else {
+		control_state = CONTROL_STOP;
+	}
 }
