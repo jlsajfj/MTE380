@@ -30,6 +30,7 @@ static uint16_t adc_reading_raw[ADC_COUNT] = {0};
 static double adc_reading[ADC_COUNT] = {0.0};
 
 static double sensor_result = 0.0;
+static double sensor_average = 0.0;
 
 void sensor_init(void) {
 }
@@ -41,13 +42,18 @@ void sensor_run(void) {
       double alpha = config_get(CONFIG_ENTRY_SENSOR_ALPHA);
       for(uint16_t i = 0; i < ADC_COUNT; i++) {
         adc_reading[i] = alpha * adc_reading[i] + (1 - alpha) * adc_reading_raw[i];
+        //printf("%11.4f", adc_reading[i]);
       }
+      //puts("");
 
       switch(sensor_state) {
         case SENSOR_STATE_RUNNING:
         {
           double total_gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0) + config_get(CONFIG_ENTRY_SENSOR_GAIN_1) + config_get(CONFIG_ENTRY_SENSOR_GAIN_2);
-          sensor_result = 0.0;
+
+          double result = 0.0;
+          double sum = 0.0;
+
           for(uint16_t i = 0; i < ADC_COUNT; i++) {
             double white = config_get(CONFIG_ENTRY_SENSOR_WHITE_0 + i);
             double black = config_get(CONFIG_ENTRY_SENSOR_BLACK_0 + i);
@@ -60,8 +66,14 @@ void sensor_run(void) {
             }
 
             double normalized = NORMALIZE(adc_reading[i], black, white);
-            sensor_result += SATURATE(normalized, 0, 1) * gain / total_gain;
+
+            sum += normalized;
+            result += SATURATE(normalized, 0, 1) * gain / total_gain;
           }
+
+          sensor_result = result;
+          sensor_average = sum / ADC_COUNT;
+
           break;
         }
 
@@ -100,6 +112,10 @@ void sensor_run(void) {
 
 double sensor_getResult(void) {
   return sensor_result;
+}
+
+double sensor_getAverage(void) {
+  return sensor_average;
 }
 
 bool sensor_valid(void) {

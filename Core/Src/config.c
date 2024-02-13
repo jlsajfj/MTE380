@@ -13,7 +13,7 @@ typedef struct {
 } config_entry_S;
 
 static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
-  [CONFIG_ENTRY_RESERVED]       = { CONFIG_ENTRY_RESERVED,        "",               1.0  },
+  [CONFIG_ENTRY_CTRL_KS]        = { CONFIG_ENTRY_CTRL_KS,         "ks",             1.0  },
   [CONFIG_ENTRY_SENSOR_ALPHA]   = { CONFIG_ENTRY_SENSOR_ALPHA,    "alpha",          0.2  },
   [CONFIG_ENTRY_SENSOR_GAIN_0]  = { CONFIG_ENTRY_SENSOR_GAIN_0,   "gain_0",         0.5  },
   [CONFIG_ENTRY_SENSOR_GAIN_1]  = { CONFIG_ENTRY_SENSOR_GAIN_1,   "gain_1",         1.5  },

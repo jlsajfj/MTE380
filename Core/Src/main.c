@@ -31,7 +31,9 @@
 #include "control.h"
 #include "sensor.h"
 #include "flash.h"
+#include "servo.h"
 #include "helper.h"
+#include "config.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -107,6 +109,7 @@ int main(void)
   command_init();
   sensor_init();
   motor_init();
+  servo_init();
   control_init();
 
   /* USER CODE END 2 */
@@ -119,6 +122,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     command_run();
+    servo_run();
     sensor_run();
     control_run();
   }

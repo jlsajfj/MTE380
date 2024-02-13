@@ -27,6 +27,8 @@ void motor_init(void) {
 	}
 
 	motor_setEnabled(true);
+	motor_setFlip(M1, true);
+	motor_setFlip(M2, true);
 
 	motor_initialized = true;
 }

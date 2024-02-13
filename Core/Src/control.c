@@ -4,7 +4,8 @@
 #include "config.h"
 #include "helper.h"
 #include "pid.h"
-#include "servo.h"
+
+#include "stm32f4xx_hal.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -12,9 +13,9 @@
 typedef enum {
   CONTROL_STOP,
   CONTROL_RUNNING,
+  CONTROL_TURNING_START,
+  CONTROL_TURNING_FIND_LINE,
   CONTROL_DEBUG,
-  CONTROL_SERVO_LOCK,
-  CONTROL_SERVO_UNLOCK,
 } control_state_E;
 
 static control_state_E control_state = CONTROL_STOP;
@@ -45,6 +46,7 @@ void control_run(void) {
       double u = pid_update(&pid, input);
 
       double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
+      speed -= config_get(CONFIG_ENTRY_CTRL_KS) * ABS(u);
       speed = SATURATE(speed, -1.0 + u/2, 1.0 - u/2);
 
       if(u > 0) {
@@ -58,21 +60,37 @@ void control_run(void) {
       break;
     }
 
+    case CONTROL_TURNING_START:
+    {
+      double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
+      motor_setSpeed(M1, -speed);
+      motor_setSpeed(M2, speed);
+
+      double input = sensor_getAverage();
+      if(ABS(input) > 1.0) {
+        control_state = CONTROL_TURNING_FIND_LINE;
+      }
+
+      break;
+    }
+
+    case CONTROL_TURNING_FIND_LINE:
+    {
+      double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
+      motor_setSpeed(M1, -speed);
+      motor_setSpeed(M2, speed);
+
+      double input = sensor_getAverage();
+      if(ABS(input) < 1.0) {
+        control_state = CONTROL_STOP;
+      }
+
+      break;
+    }
+
     case CONTROL_DEBUG:
       printf("%lf\n", sensor_getResult());
       break;
-
-    case CONTROL_SERVO_LOCK:
-    {
-    	servo_setLocked();
-    	break;
-    }
-
-    case CONTROL_SERVO_UNLOCK:
-    {
-    	servo_setUnlocked();
-    	break;
-    }
   }
 }
 
@@ -93,12 +111,6 @@ void control_toggle(void) {
     case CONTROL_STOP:
       control_state = CONTROL_RUNNING;
       break;
-    case CONTROL_SERVO_UNLOCK:
-      control_state = CONTROL_SERVO_LOCK;
-      break;
-    case CONTROL_SERVO_LOCK:
-      control_state = CONTROL_SERVO_UNLOCK;
-      break;
     case CONTROL_RUNNING:
     default:
       control_state = CONTROL_STOP;
@@ -106,10 +118,6 @@ void control_toggle(void) {
   }
 }
 
-void control_servo_mode(bool servo_mode) {
-	if (servo_mode) {
-		control_state = CONTROL_SERVO_UNLOCK;
-	} else {
-		control_state = CONTROL_STOP;
-	}
+void control_turnAround(void) {
+  control_state = CONTROL_TURNING_START;
 }

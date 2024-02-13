@@ -16,6 +16,6 @@ void control_start(void);
 void control_stop(void);
 void control_toggle(void);
 void control_debug(void);
-void control_servo_mode(bool servo_mode);
+void control_turnAround(void);
 
 #endif

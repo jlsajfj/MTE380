@@ -4,6 +4,7 @@
 #include "control.h"
 #include "sensor.h"
 #include "flash.h"
+#include "servo.h"
 #include "helper.h"
 #include "config.h"
 
@@ -40,12 +41,7 @@ void command_run(void) {
     control_toggle();
   }
 
-  bool servo_jumper = HAL_GPIO_ReadPin(Servo_Jumper_GPIO_Port, Servo_Jumper_Pin) == GPIO_PIN_SET;
-  control_servo_mode(servo_jumper);
-
-
-
-#define MATCH_CMD(x) (strncmp((x), (const char*) rx_buff, rx_len) == 0)
+#define MATCH_CMD(x) (strlen(x) == rx_len && strncmp((x), (const char*) rx_buff, rx_len) == 0)
 #define MATCH_CMD_N(x, n) (strncmp((x), (const char*) rx_buff, MIN((n), rx_len)) == 0)
 
   if(rx_pend) {
@@ -53,8 +49,32 @@ void command_run(void) {
       control_start();
     } else if(MATCH_CMD("stop")) {
       control_stop();
+    } else if(MATCH_CMD("turn")) {
+      control_turnAround();
     } else if(MATCH_CMD("debug")) {
       control_debug();
+
+    } else if(MATCH_CMD_N("servo ", 6)) {
+      uint16_t position_start = 5; while(isspace(rx_buff[position_start]) && position_start < rx_len) position_start++;
+
+      double position = 0.0f;
+      double valid = true;
+
+      if(strcmp("lock", rx_buff + position_start) == 0) {
+        position = config_get(CONFIG_ENTRY_SERVO_LOCK);
+      } else if(strcmp("unlock", rx_buff + position_start) == 0) {
+        position = config_get(CONFIG_ENTRY_SERVO_UNLOCK);
+      } else if(sscanf((const char*) (rx_buff + position_start), "%lf", &position) != 1) {
+        valid = false;
+      }
+
+      if(valid) {
+        printf("set servo to %f\n", position);
+        servo_setPosition(position);
+      } else {
+        puts("invalid value");
+      }
+
     } else if(MATCH_CMD("white")) {
       sensor_calibrate_white();
     } else if(MATCH_CMD("black")) {
@@ -103,7 +123,7 @@ void command_run(void) {
         printf("%16s = %lf\n", rx_buff + name_start, value);
       }
     } else {
-      puts("start, stop, debug, white, black, save, load, reset, boot, set, get");
+      puts("unknown command");
     }
 
 #undef MATCH_CMD

@@ -4,7 +4,7 @@
 // double only because we only need it for now and I'm lazy
 
 typedef enum {
-   CONFIG_ENTRY_RESERVED,
+   CONFIG_ENTRY_CTRL_KS,
    CONFIG_ENTRY_SENSOR_ALPHA,
    CONFIG_ENTRY_SENSOR_GAIN_0,
    CONFIG_ENTRY_SENSOR_GAIN_1,
