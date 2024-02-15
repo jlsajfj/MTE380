@@ -8,29 +8,41 @@ static bool motor_initialized = 0;
 static bool motor_flip[MOTOR_NUM] = { false, false };
 
 typedef struct {
-	GPIO_TypeDef *dir_port;
-	uint16_t dir_pin;
-	__IO uint32_t *pwm_reg;
-	TIM_HandleTypeDef *pwm_timer;
-	uint32_t pwm_timer_channel;
+	GPIO_TypeDef			*dir_port;
+	uint16_t					dir_pin;
+
+	__IO uint32_t			*pwm_reg;
+	TIM_HandleTypeDef		*pwm_timer;
+	uint32_t					pwm_timer_channel;
+
+	__IO uint32_t			*enc_reg;
+	TIM_HandleTypeDef		*enc_timer;
 } motor_definition_S;
 
 static motor_definition_S motors[MOTOR_NUM] = {
-	[M1] = { MtrDvr_Dir1_GPIO_Port, MtrDvr_Dir1_Pin, &TIM3->CCR2, &htim3, TIM_CHANNEL_2 },
-	[M2] = { MtrDvr_Dir2_GPIO_Port, MtrDvr_Dir2_Pin, &TIM4->CCR1, &htim4, TIM_CHANNEL_1 },
+	[M1] = { MtrDvr_Dir1_GPIO_Port, MtrDvr_Dir1_Pin, &TIM4->CCR3, &htim4, TIM_CHANNEL_3, &TIM3->CNT, &htim3 },
+	[M2] = { MtrDvr_Dir2_GPIO_Port, MtrDvr_Dir2_Pin, &TIM4->CCR1, &htim4, TIM_CHANNEL_1, &TIM1->CNT, &htim1 },
 };
 
 void motor_init(void) {
 	for(motor_E motor = M1; motor < MOTOR_NUM; motor++) {
 		motor_definition_S *motor_def = &motors[motor];
 		HAL_TIM_PWM_Start(motor_def->pwm_timer, motor_def->pwm_timer_channel);
+		HAL_TIM_Encoder_Start(motor_def->enc_timer, TIM_CHANNEL_ALL);
 	}
 
 	motor_setEnabled(true);
-	motor_setFlip(M1, true);
 	motor_setFlip(M2, true);
 
 	motor_initialized = true;
+}
+
+void motor_run(void) {
+	//for(motor_E motor = M1; motor < MOTOR_NUM; motor++) {
+	//	motor_definition_S *motor_def = &motors[motor];
+	//	printf("%10ld", *motor_def->enc_reg);
+	//}
+	//puts("");
 }
 
 void motor_setSpeed(motor_E motor, double speed) {

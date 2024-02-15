@@ -103,6 +103,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_TIM2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   config_load();
@@ -121,10 +122,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    command_run();
-    servo_run();
     sensor_run();
+    command_run();
     control_run();
+    servo_run();
+    motor_run();
   }
   /* USER CODE END 3 */
 }

@@ -11,6 +11,7 @@ typedef enum {
 } motor_E;
 
 void motor_init(void);
+void motor_run(void);
 
 void motor_setSpeed(motor_E motor, double speed);
 void motor_setFlip(motor_E motor, bool flip);

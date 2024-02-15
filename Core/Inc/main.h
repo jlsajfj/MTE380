@@ -67,24 +67,30 @@ void Error_Handler(void);
 #define MtrDvr_Fault_GPIO_Port GPIOA
 #define Servo_PWM_Pin GPIO_PIN_10
 #define Servo_PWM_GPIO_Port GPIOB
-#define MtrDvr_PWM1_Pin GPIO_PIN_7
-#define MtrDvr_PWM1_GPIO_Port GPIOC
-#define MtrDvr_Dir1_Pin GPIO_PIN_8
-#define MtrDvr_Dir1_GPIO_Port GPIOA
-#define MtrDvr_Dir2_Pin GPIO_PIN_9
-#define MtrDvr_Dir2_GPIO_Port GPIOA
+#define MtrEnc_2A_Pin GPIO_PIN_6
+#define MtrEnc_2A_GPIO_Port GPIOC
+#define MtrEnc_2B_Pin GPIO_PIN_7
+#define MtrEnc_2B_GPIO_Port GPIOC
+#define MtrEnc_1A_Pin GPIO_PIN_8
+#define MtrEnc_1A_GPIO_Port GPIOA
+#define MtrEnc_1B_Pin GPIO_PIN_9
+#define MtrEnc_1B_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
 #define Servo_Jumper_Pin GPIO_PIN_12
 #define Servo_Jumper_GPIO_Port GPIOC
-#define SWO_Pin GPIO_PIN_3
-#define SWO_GPIO_Port GPIOB
+#define MtrDvr_Dir1_Pin GPIO_PIN_3
+#define MtrDvr_Dir1_GPIO_Port GPIOB
+#define MtrDvr_Dir2_Pin GPIO_PIN_4
+#define MtrDvr_Dir2_GPIO_Port GPIOB
 #define MtrDvr_EN_Pin GPIO_PIN_5
 #define MtrDvr_EN_GPIO_Port GPIOB
 #define MtrDvr_PWM2_Pin GPIO_PIN_6
 #define MtrDvr_PWM2_GPIO_Port GPIOB
+#define MtrDvr_PWM1_Pin GPIO_PIN_8
+#define MtrDvr_PWM1_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
