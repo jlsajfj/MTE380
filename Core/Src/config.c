@@ -42,7 +42,7 @@ static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
   [CONFIG_ENTRY_COUNT_KP]       = { CONFIG_ENTRY_COUNT_KP,        "pp",             1.0  },
   [CONFIG_ENTRY_COUNT_KI]       = { CONFIG_ENTRY_COUNT_KP,        "pi",             0.0  },
   [CONFIG_ENTRY_COUNT_KD]       = { CONFIG_ENTRY_COUNT_KD,        "pd",             0.0  },
-  [CONFIG_ENTRY_COUNT_PWM_LIMIT]= { CONFIG_ENTRY_COUNT_PWM_LIMIT, "ps",             0.3  },
+  [CONFIG_ENTRY_COUNT_PWM_LIMIT]= { CONFIG_ENTRY_COUNT_PWM_LIMIT, "move_speed",     0.3  },
 };
 
 static union {

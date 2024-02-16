@@ -21,6 +21,9 @@ void motor_move(motor_E motor_id, int32_t count);
 void motor_setSpeed(motor_E motor_id, double speed);
 void motor_stop(motor_E motor_id);
 
+int32_t motor_getCount(motor_E motor_id);
+void motor_resetCount(motor_E motor_id);
+
 bool motor_getFault(void);
 void motor_setEnabled(bool enabled);
 

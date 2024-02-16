@@ -111,7 +111,7 @@ void motor_run(void) {
     motor_data_S *data = &motor_datas[motor_id];
 
     // update counter and speed
-    uint16_t count_raw = motor->flip_enc ? (*motor->enc_reg) : (*motor->enc_reg ^ 0xFFFF);
+    uint16_t count_raw = motor->flip_enc ? (*motor->enc_reg) : (-*motor->enc_reg);
 
     int32_t count_diff = (int16_t) (count_raw - (uint16_t) data->count);
     data->count += count_diff;
@@ -181,6 +181,14 @@ void motor_setSpeed(motor_E motor_id, double speed) {
 void motor_stop(motor_E motor_id) {
   motor_data_S *data = &motor_datas[motor_id];
   data->mode = MOTOR_MODE_STOP;
+}
+
+void motor_resetCount(motor_E motor_id) {
+  motor_datas[motor_id].count = 0;
+}
+
+int32_t motor_getCount(motor_E motor_id) {
+  return motor_datas[motor_id].count = 0;
 }
 
 bool motor_getFault(void) {
