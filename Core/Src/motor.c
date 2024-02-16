@@ -39,6 +39,7 @@ typedef struct {
   double speed;
 
   pid_data_S pid;
+  double last_pwm;
 } motor_data_S;
 
 static const motor_definition_S motors[MOTOR_NUM] = {
@@ -134,12 +135,11 @@ void motor_run(void) {
         double error = (double) (data->count_target - data->count);
 
         if(data->last_mode != data->mode) {
-          pid_reset(&data->pid, error);
+          pid_reset(&data->pid, error, data->last_pwm);
         }
 
-        double u = pid_update(&data->pid, error);
-
-        motor_setPWM(motor_id, u);
+        double pwm = pid_update(&data->pid, error);
+        motor_setPWM(motor_id, pwm);
       }
       break;
 
@@ -148,12 +148,11 @@ void motor_run(void) {
         double error = data->speed_target - data->speed;
 
         if(data->last_mode != data->mode) {
-          pid_reset(&data->pid, error);
+          pid_reset(&data->pid, error, data->last_pwm);
         }
 
-        double u = pid_update(&data->pid, error);
-
-        motor_setPWM(motor_id, u);
+        double pwm = pid_update(&data->pid, error);
+        motor_setPWM(motor_id, pwm);
       }
 
       default:
@@ -194,10 +193,11 @@ void motor_setEnabled(bool enabled) {
 
 static void motor_setPWM(motor_E motor_id, double pwm) {
   const motor_definition_S *motor = &motors[motor_id];
+  motor_data_S *data = &motor_datas[motor_id];
   const bool reversed = (pwm < 0) != motor->flip_dir;
 
   HAL_GPIO_WritePin(motor->dir_port, motor->dir_pin, reversed ? GPIO_PIN_SET : GPIO_PIN_RESET);
 
-  // currently setup for the PWM to take a number from 0 - 1024
-  *motor->pwm_reg = (uint32_t) (MIN(ABS(pwm), 1.0) * 1024);
+  data->last_pwm = pwm;
+  *motor->pwm_reg = (uint32_t) (MIN(ABS(pwm), 1.0) * 1024); // PWM timer from 0 - 1024
 }

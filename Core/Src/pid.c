@@ -32,11 +32,11 @@ double pid_update(pid_data_S *data, double error) {
    return data->output;
 }
 
-void pid_reset(pid_data_S *data, double error) {
+void pid_reset(pid_data_S *data, double error, double output) {
    double kp = config_get(data->config.kp);
    double ki = config_get(data->config.ki);
 
    // exclude derivative as the value would be way off between pid transitions
    data->error_last = error;
-   data->error_accu = (data->output - kp * error) / ki;
+   data->error_accu = (output - kp * error) / ki;
 }

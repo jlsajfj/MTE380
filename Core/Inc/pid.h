@@ -21,6 +21,6 @@ typedef struct {
 
 void pid_init(pid_data_S *data);
 double pid_update(pid_data_S *data, double error);
-void pid_reset(pid_data_S *data, double error); // should call before pid_update
+void pid_reset(pid_data_S *data, double error, double output); // should call before pid_update
 
 #endif
