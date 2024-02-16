@@ -13,20 +13,20 @@
 typedef enum {
   CONTROL_STOP,
   CONTROL_RUNNING,
-  CONTROL_TURNING_START,
-  CONTROL_TURNING_FIND_LINE,
   CONTROL_DEBUG,
 } control_state_E;
 
 static control_state_E control_state = CONTROL_STOP;
 
 static pid_data_S pid = {
-   .kp_config = CONFIG_ENTRY_CTRL_KP,
-   .ki_config = CONFIG_ENTRY_CTRL_KI,
-   .kd_config = CONFIG_ENTRY_CTRL_KD,
+  .config = {
+    .kp = CONFIG_ENTRY_CTRL_KP,
+    .ki = CONFIG_ENTRY_CTRL_KI,
+    .kd = CONFIG_ENTRY_CTRL_KD,
 
-   .output_max =  2.0,
-   .output_min = -2.0,
+    .output_max =  12.0,
+    .output_min = -12.0,
+  }
 };
 
 void control_init(void) {
@@ -36,17 +36,15 @@ void control_init(void) {
 void control_run(void) {
   switch(control_state) {
     case CONTROL_STOP:
-        motor_setSpeed(M1, 0.0);
-        motor_setSpeed(M2, 0.0);
       break;
 
     case CONTROL_RUNNING:
     {
       double input = sensor_getResult();
       double u = pid_update(&pid, input);
+      u = 0;
 
       double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
-      speed -= config_get(CONFIG_ENTRY_CTRL_KS) * ABS(u);
       speed = SATURATE(speed, -1.0 + u/2, 1.0 - u/2);
 
       if(u > 0) {
@@ -55,34 +53,6 @@ void control_run(void) {
       } else {
         motor_setSpeed(M1, speed - u / 2);
         motor_setSpeed(M2, speed + u / 2);
-      }
-
-      break;
-    }
-
-    case CONTROL_TURNING_START:
-    {
-      double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
-      motor_setSpeed(M1, -speed);
-      motor_setSpeed(M2, speed);
-
-      double input = sensor_getAverage();
-      if(ABS(input) > 1.0) {
-        control_state = CONTROL_TURNING_FIND_LINE;
-      }
-
-      break;
-    }
-
-    case CONTROL_TURNING_FIND_LINE:
-    {
-      double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
-      motor_setSpeed(M1, -speed);
-      motor_setSpeed(M2, speed);
-
-      double input = sensor_getAverage();
-      if(ABS(input) < 1.0) {
-        control_state = CONTROL_STOP;
       }
 
       break;
@@ -99,6 +69,8 @@ void control_start(void) {
 }
 
 void control_stop(void) {
+  motor_stop(M1);
+  motor_stop(M2);
   control_state = CONTROL_STOP;
 }
 
@@ -116,8 +88,4 @@ void control_toggle(void) {
       control_state = CONTROL_STOP;
       break;
   }
-}
-
-void control_turnAround(void) {
-  control_state = CONTROL_TURNING_START;
 }

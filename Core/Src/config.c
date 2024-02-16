@@ -13,11 +13,6 @@ typedef struct {
 } config_entry_S;
 
 static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
-  [CONFIG_ENTRY_CTRL_KS]        = { CONFIG_ENTRY_CTRL_KS,         "ks",             1.0  },
-  [CONFIG_ENTRY_SENSOR_ALPHA]   = { CONFIG_ENTRY_SENSOR_ALPHA,    "alpha",          0.2  },
-  [CONFIG_ENTRY_SENSOR_GAIN_0]  = { CONFIG_ENTRY_SENSOR_GAIN_0,   "gain_0",         0.5  },
-  [CONFIG_ENTRY_SENSOR_GAIN_1]  = { CONFIG_ENTRY_SENSOR_GAIN_1,   "gain_1",         1.5  },
-  [CONFIG_ENTRY_SENSOR_GAIN_2]  = { CONFIG_ENTRY_SENSOR_GAIN_2,   "gain_2",         5.0  },
   [CONFIG_ENTRY_SENSOR_WHITE_0] = { CONFIG_ENTRY_SENSOR_WHITE_0,  "white_0",     4000.0  },
   [CONFIG_ENTRY_SENSOR_WHITE_1] = { CONFIG_ENTRY_SENSOR_WHITE_1,  "white_1",     4000.0  },
   [CONFIG_ENTRY_SENSOR_WHITE_2] = { CONFIG_ENTRY_SENSOR_WHITE_2,  "white_2",     4000.0  },
@@ -30,12 +25,24 @@ static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
   [CONFIG_ENTRY_SENSOR_BLACK_3] = { CONFIG_ENTRY_SENSOR_BLACK_3,  "black_3",     2000.0  },
   [CONFIG_ENTRY_SENSOR_BLACK_4] = { CONFIG_ENTRY_SENSOR_BLACK_4,  "black_4",     2000.0  },
   [CONFIG_ENTRY_SENSOR_BLACK_5] = { CONFIG_ENTRY_SENSOR_BLACK_5,  "black_5",     2000.0  },
-  [CONFIG_ENTRY_MOTOR_SPEED]    = { CONFIG_ENTRY_MOTOR_SPEED,     "speed",          1.0  },
+  [CONFIG_ENTRY_SENSOR_ALPHA]   = { CONFIG_ENTRY_SENSOR_ALPHA,    "alpha",          0.2  },
+  [CONFIG_ENTRY_SENSOR_GAIN_0]  = { CONFIG_ENTRY_SENSOR_GAIN_0,   "gain_0",         1.0  },
+  [CONFIG_ENTRY_SENSOR_GAIN_1]  = { CONFIG_ENTRY_SENSOR_GAIN_1,   "gain_1",         3.0  },
+  [CONFIG_ENTRY_SENSOR_GAIN_2]  = { CONFIG_ENTRY_SENSOR_GAIN_2,   "gain_2",         5.0  },
+  [CONFIG_ENTRY_MOTOR_SPEED]    = { CONFIG_ENTRY_MOTOR_SPEED,     "speed",          0.1  },
   [CONFIG_ENTRY_CTRL_KP]        = { CONFIG_ENTRY_CTRL_KP,         "kp",             1.0  },
-  [CONFIG_ENTRY_CTRL_KI]        = { CONFIG_ENTRY_CTRL_KP,         "ki",             1.0  },
-  [CONFIG_ENTRY_CTRL_KD]        = { CONFIG_ENTRY_CTRL_KD,         "kd",             1.0  },
-  [CONFIG_ENTRY_SERVO_LOCK]     = { CONFIG_ENTRY_SERVO_LOCK,      "servo_lock",     0.1  },
-  [CONFIG_ENTRY_SERVO_UNLOCK]   = { CONFIG_ENTRY_SERVO_UNLOCK,    "servo_unlock",   0.2  },
+  [CONFIG_ENTRY_CTRL_KI]        = { CONFIG_ENTRY_CTRL_KP,         "ki",             0.0  },
+  [CONFIG_ENTRY_CTRL_KD]        = { CONFIG_ENTRY_CTRL_KD,         "kd",             0.0  },
+  [CONFIG_ENTRY_SERVO_LOCK]     = { CONFIG_ENTRY_SERVO_LOCK,      "servo_lock",     0.8  },
+  [CONFIG_ENTRY_SERVO_UNLOCK]   = { CONFIG_ENTRY_SERVO_UNLOCK,    "servo_unlock",   0.4  },
+  [CONFIG_ENTRY_SPEED_KP]       = { CONFIG_ENTRY_SPEED_KP,        "sp",             1.0  },
+  [CONFIG_ENTRY_SPEED_KI]       = { CONFIG_ENTRY_SPEED_KP,        "si",             0.0  },
+  [CONFIG_ENTRY_SPEED_KD]       = { CONFIG_ENTRY_SPEED_KD,        "sd",             0.0  },
+  [CONFIG_ENTRY_SPEED_ALPHA]    = { CONFIG_ENTRY_SPEED_ALPHA,     "sa",             0.5  },
+  [CONFIG_ENTRY_COUNT_KP]       = { CONFIG_ENTRY_COUNT_KP,        "pp",             1.0  },
+  [CONFIG_ENTRY_COUNT_KI]       = { CONFIG_ENTRY_COUNT_KP,        "pi",             0.0  },
+  [CONFIG_ENTRY_COUNT_KD]       = { CONFIG_ENTRY_COUNT_KD,        "pd",             0.0  },
+  [CONFIG_ENTRY_COUNT_PWM_LIMIT]= { CONFIG_ENTRY_COUNT_PWM_LIMIT, "ps",             0.3  },
 };
 
 static union {
@@ -55,7 +62,7 @@ double config_get(config_id_E id) {
   if(id >= 0 && id < CONFIG_ENTRY_COUNT) {
     return config_values.values[id];
   }
-  return NAN;
+  return 0.0;
 }
 
 double config_getByName(char *name) {

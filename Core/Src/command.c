@@ -7,6 +7,7 @@
 #include "servo.h"
 #include "helper.h"
 #include "config.h"
+#include "motor.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -29,7 +30,6 @@ static uint16_t btn_dbc = 0;
 void command_init(void) {
   HAL_UART_Receive_IT(&huart2, (uint8_t*) &rx_char, 1);
 }
-
 void command_run(void) {
   uint32_t tick = HAL_GetTick();
 
@@ -47,10 +47,10 @@ void command_run(void) {
   if(rx_pend) {
     if(MATCH_CMD("start")) {
       control_start();
+
     } else if(MATCH_CMD("stop")) {
       control_stop();
-    } else if(MATCH_CMD("turn")) {
-      control_turnAround();
+
     } else if(MATCH_CMD("debug")) {
       control_debug();
 
@@ -73,6 +73,34 @@ void command_run(void) {
         servo_setPosition(position);
       } else {
         puts("invalid value");
+      }
+
+    } else if(MATCH_CMD_N("move ", 5)) {
+      uint16_t dist_start = 4; while(isspace(rx_buff[dist_start]) && dist_start < rx_len) dist_start++;
+
+      double dist = 0.0;
+      if(sscanf((const char*) (rx_buff + dist_start), "%lf", &dist) == 1) {
+        int32_t count = MOTOR_MM_TO_COUNT(dist);
+        motor_move(M1, count);
+        motor_move(M2, count);
+        printf("moving by %lf mm\n", dist);
+
+      } else {
+        puts("invalid distance");
+      }
+
+    } else if(MATCH_CMD_N("turn ", 5)) {
+      uint16_t dist_start = 4; while(isspace(rx_buff[dist_start]) && dist_start < rx_len) dist_start++;
+
+      double dist = 0.0;
+      if(sscanf((const char*) (rx_buff + dist_start), "%lf", &dist) == 1) {
+        int32_t count = MOTOR_MM_TO_COUNT(dist);
+        motor_move(M1, count);
+        motor_move(M2, -count);
+        printf("turning by %lf mm\n", dist);
+
+      } else {
+        puts("invalid distance");
       }
 
     } else if(MATCH_CMD("white")) {

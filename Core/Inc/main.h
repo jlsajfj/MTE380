@@ -81,10 +81,10 @@ void Error_Handler(void);
 #define TCK_GPIO_Port GPIOA
 #define Servo_Jumper_Pin GPIO_PIN_12
 #define Servo_Jumper_GPIO_Port GPIOC
-#define MtrDvr_Dir1_Pin GPIO_PIN_3
-#define MtrDvr_Dir1_GPIO_Port GPIOB
-#define MtrDvr_Dir2_Pin GPIO_PIN_4
+#define MtrDvr_Dir2_Pin GPIO_PIN_3
 #define MtrDvr_Dir2_GPIO_Port GPIOB
+#define MtrDvr_Dir1_Pin GPIO_PIN_4
+#define MtrDvr_Dir1_GPIO_Port GPIOB
 #define MtrDvr_EN_Pin GPIO_PIN_5
 #define MtrDvr_EN_GPIO_Port GPIOB
 #define MtrDvr_PWM2_Pin GPIO_PIN_6

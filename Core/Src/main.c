@@ -56,6 +56,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+static volatile bool start_loop;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,6 +105,7 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM2_Init();
   MX_TIM1_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
   config_load();
@@ -112,6 +114,8 @@ int main(void)
   motor_init();
   servo_init();
   control_init();
+
+  HAL_TIM_Base_Start_IT(&htim5);
 
   /* USER CODE END 2 */
 
@@ -122,6 +126,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    while(!start_loop);
+    start_loop = false;
+
+    // order is important
     sensor_run();
     command_run();
     control_run();
@@ -177,6 +185,10 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
+  if(htim != &htim5) return;
+  start_loop = true;
+}
 /* USER CODE END 4 */
 
 /**
