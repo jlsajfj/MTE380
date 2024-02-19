@@ -20,6 +20,7 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
+#include "i2c.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -32,6 +33,7 @@
 #include "sensor.h"
 #include "flash.h"
 #include "servo.h"
+#include "compass.h"
 #include "helper.h"
 #include "config.h"
 
@@ -106,14 +108,16 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM1_Init();
   MX_TIM5_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
   config_load();
-  command_init();
   sensor_init();
-  motor_init();
-  servo_init();
+  compass_init();
+  command_init();
   control_init();
+  servo_init();
+  motor_init();
 
   HAL_TIM_Base_Start_IT(&htim5);
 
@@ -131,6 +135,7 @@ int main(void)
 
     // order is important
     sensor_run();
+    compass_run();
     command_run();
     control_run();
     servo_run();

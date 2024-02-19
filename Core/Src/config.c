@@ -42,7 +42,17 @@ static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
   [CONFIG_ENTRY_COUNT_KP]       = { CONFIG_ENTRY_COUNT_KP,        "pp",             1.0  },
   [CONFIG_ENTRY_COUNT_KI]       = { CONFIG_ENTRY_COUNT_KP,        "pi",             0.0  },
   [CONFIG_ENTRY_COUNT_KD]       = { CONFIG_ENTRY_COUNT_KD,        "pd",             0.0  },
-  [CONFIG_ENTRY_COUNT_PWM_LIMIT]= { CONFIG_ENTRY_COUNT_PWM_LIMIT, "move_speed",     0.3  },
+  [CONFIG_ENTRY_COUNT_SP]       = { CONFIG_ENTRY_COUNT_SP,        "move_speed",     0.3  },
+  [CONFIG_ENTRY_START]          = { CONFIG_ENTRY_START,           "start",          0.45 },
+  [CONFIG_ENTRY_FINISH]         = { CONFIG_ENTRY_FINISH,          "finish",         1.35 },
+  [CONFIG_ENTRY_COMPASS_MIN_X]  = { CONFIG_ENTRY_COMPASS_MIN_X,   "compass_min_x", -100.0 },
+  [CONFIG_ENTRY_COMPASS_MIN_Y]  = { CONFIG_ENTRY_COMPASS_MIN_Y,   "compass_min_y",  100.0 },
+  [CONFIG_ENTRY_COMPASS_MAX_X]  = { CONFIG_ENTRY_COMPASS_MAX_X,   "compass_min_x", -100.0 },
+  [CONFIG_ENTRY_COMPASS_MAX_Y]  = { CONFIG_ENTRY_COMPASS_MAX_Y,   "compass_min_y",  100.0 },
+  [CONFIG_ENTRY_AIM_KP]         = { CONFIG_ENTRY_AIM_KP,          "ap",             1.0  },
+  [CONFIG_ENTRY_AIM_KI]         = { CONFIG_ENTRY_AIM_KI,          "ai",             0.0  },
+  [CONFIG_ENTRY_AIM_KD]         = { CONFIG_ENTRY_AIM_KD,          "ad",             0.0  },
+  [CONFIG_ENTRY_AIM_SP]         = { CONFIG_ENTRY_AIM_SP,          "as",             1.0  },
 };
 
 static union {

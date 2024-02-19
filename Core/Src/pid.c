@@ -9,12 +9,20 @@ void pid_init(pid_data_S *data) {
    data->error_last = 0;
 }
 
-double pid_update(pid_data_S *data, double error) {
+double pid_update(pid_data_S *data, double error, bool reset) {
    double kp = config_get(data->config.kp);
    double ki = config_get(data->config.ki);
    double kd = config_get(data->config.kd);
 
-   double diff = error - data->error_last;
+   double diff;
+   if(reset) {
+      data->error_last = error;
+      data->error_accu = (data->output - kp * error) / ki;
+      diff = 0.0;
+   } else {
+      diff = error - data->error_last;
+   }
+
    data->error_last = error;
 
    double pd_output = kp * error + kd * diff;

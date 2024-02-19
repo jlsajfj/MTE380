@@ -3,6 +3,8 @@
 
 #include "config.h"
 
+#include <stdbool.h>
+
 typedef struct {
    config_id_E kp;
    config_id_E ki;
@@ -20,7 +22,6 @@ typedef struct {
 } pid_data_S;
 
 void pid_init(pid_data_S *data);
-double pid_update(pid_data_S *data, double error);
-void pid_reset(pid_data_S *data, double error, double output); // should call before pid_update
+double pid_update(pid_data_S *data, double error, bool reset);
 
 #endif

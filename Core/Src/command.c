@@ -30,15 +30,24 @@ static uint16_t btn_dbc = 0;
 void command_init(void) {
   HAL_UART_Receive_IT(&huart2, (uint8_t*) &rx_char, 1);
 }
+
 void command_run(void) {
   uint32_t tick = HAL_GetTick();
 
   bool btn = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET;
-  bool btn_rise = btn && (tick - btn_dbc) > 200;
+  bool btn_rise = btn && (tick - btn_dbc) > 500;
   if(btn) btn_dbc = tick;
 
   if(btn_rise) {
-    control_toggle();
+    switch(control_getState()) {
+      case CONTROL_STATE_STOP:
+        control_setState(CONTROL_STATE_RUN);
+        break;
+
+      default:
+        control_setState(CONTROL_STATE_STOP);
+        break;
+    }
   }
 
 #define MATCH_CMD(x) (strlen(x) == rx_len && strncmp((x), (const char*) rx_buff, rx_len) == 0)
@@ -46,13 +55,21 @@ void command_run(void) {
 
   if(rx_pend) {
     if(MATCH_CMD("start")) {
-      control_start();
+      control_setState(CONTROL_STATE_RUN);
+
+    } else if(MATCH_CMD("aim")) {
+      control_setState(CONTROL_STATE_AIM);
 
     } else if(MATCH_CMD("stop")) {
-      control_stop();
+      control_setState(CONTROL_STATE_STOP);
+      motor_stop(M1);
+      motor_stop(M2);
+
+    } else if(MATCH_CMD("calibrate")) {
+      control_setState(CONTROL_STATE_CALIBRATE);
 
     } else if(MATCH_CMD("debug")) {
-      control_debug();
+      control_setState(CONTROL_STATE_DEBUG);
 
     } else if(MATCH_CMD_N("servo ", 6)) {
       uint16_t position_start = 5; while(isspace(rx_buff[position_start]) && position_start < rx_len) position_start++;
@@ -73,34 +90,6 @@ void command_run(void) {
         servo_setPosition(position);
       } else {
         puts("invalid value");
-      }
-
-    } else if(MATCH_CMD_N("move ", 5)) {
-      uint16_t dist_start = 4; while(isspace(rx_buff[dist_start]) && dist_start < rx_len) dist_start++;
-
-      double dist = 0.0;
-      if(sscanf((const char*) (rx_buff + dist_start), "%lf", &dist) == 1) {
-        int32_t count = MOTOR_MM_TO_COUNT(dist);
-        motor_move(M1, count);
-        motor_move(M2, count);
-        printf("moving by %lf mm\n", dist);
-
-      } else {
-        puts("invalid distance");
-      }
-
-    } else if(MATCH_CMD_N("turn ", 5)) {
-      uint16_t dist_start = 4; while(isspace(rx_buff[dist_start]) && dist_start < rx_len) dist_start++;
-
-      double dist = 0.0;
-      if(sscanf((const char*) (rx_buff + dist_start), "%lf", &dist) == 1) {
-        int32_t count = MOTOR_MM_TO_COUNT(dist);
-        motor_move(M1, count);
-        motor_move(M2, -count);
-        printf("turning by %lf mm\n", dist);
-
-      } else {
-        puts("invalid distance");
       }
 
     } else if(MATCH_CMD("white")) {

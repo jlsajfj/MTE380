@@ -10,7 +10,6 @@
 typedef enum {
   MOTOR_MODE_STOP,
   MOTOR_MODE_SPEED,
-  MOTOR_MODE_COUNT,
 } motor_mode_E;
 
 typedef struct {
@@ -32,26 +31,25 @@ typedef struct {
   motor_mode_E mode;
   motor_mode_E last_mode;
 
-  int32_t count_target;
   double speed_target;
 
   int32_t count;
   double speed;
 
-  pid_data_S pid;
   double last_pwm;
+  pid_data_S pid;
 } motor_data_S;
 
-static const motor_definition_S motors[MOTOR_NUM] = {
+static const motor_definition_S motors[MOTOR_COUNT] = {
   [M1] = {
     .dir_port          = MtrDvr_Dir1_GPIO_Port,
     .dir_pin           = MtrDvr_Dir1_Pin,
-    .pwm_reg           = &TIM4->CCR3,
+    .pwm_reg           = &TIM4->CCR2,
     .pwm_timer         = &htim4,
-    .pwm_timer_channel = TIM_CHANNEL_3,
+    .pwm_timer_channel = TIM_CHANNEL_2,
     .enc_reg           = &TIM3->CNT,
     .enc_timer         = &htim3,
-    .flip_dir          = true,
+    .flip_dir          = false,
     .flip_enc          = true,
   },
   [M2] = {
@@ -62,12 +60,12 @@ static const motor_definition_S motors[MOTOR_NUM] = {
     .pwm_timer_channel = TIM_CHANNEL_1,
     .enc_reg           = &TIM1->CNT,
     .enc_timer         = &htim1,
-    .flip_dir          = false,
+    .flip_dir          = true,
     .flip_enc          = false,
   },
 };
 
-static pid_config_S motor_speed_pid_config = {
+static pid_config_S motor_pid_config = {
    .kp = CONFIG_ENTRY_SPEED_KP,
    .ki = CONFIG_ENTRY_SPEED_KI,
    .kd = CONFIG_ENTRY_SPEED_KD,
@@ -76,24 +74,16 @@ static pid_config_S motor_speed_pid_config = {
    .output_min = -1.0,
 };
 
-static pid_config_S motor_count_pid_config = {
-   .kp = CONFIG_ENTRY_COUNT_KP,
-   .ki = CONFIG_ENTRY_COUNT_KI,
-   .kd = CONFIG_ENTRY_COUNT_KD,
-
-   .output_max =  0.5,
-   .output_min = -0.5,
-};
-
-static motor_data_S motor_datas[MOTOR_NUM];
+static motor_data_S motor_datas[MOTOR_COUNT];
 
 static void motor_setPWM(motor_E motor_id, double pwm);
 
 void motor_init(void) {
-  for(motor_E motor_id = M1; motor_id < MOTOR_NUM; motor_id++) {
+  for(motor_E motor_id = M1; motor_id < MOTOR_COUNT; motor_id++) {
     const motor_definition_S *motor = &motors[motor_id];
     motor_data_S *data = &motor_datas[motor_id];
 
+    data->pid.config = motor_pid_config;
     pid_init(&data->pid);
 
     data->mode = MOTOR_MODE_STOP;
@@ -106,7 +96,7 @@ void motor_init(void) {
 }
 
 void motor_run(void) {
-  for(motor_E motor_id = M1; motor_id < MOTOR_NUM; motor_id++) {
+  for(motor_E motor_id = M1; motor_id < MOTOR_COUNT; motor_id++) {
     const motor_definition_S *motor = &motors[motor_id];
     motor_data_S *data = &motor_datas[motor_id];
 
@@ -126,32 +116,12 @@ void motor_run(void) {
         motor_setPWM(motor_id, 0.0);
         break;
 
-      case MOTOR_MODE_COUNT:
-      {
-        double pwm_limit = config_get(CONFIG_ENTRY_COUNT_PWM_LIMIT);
-        data->pid.config.output_max = pwm_limit;
-        data->pid.config.output_min = -pwm_limit;
-
-        double error = (double) (data->count_target - data->count);
-
-        if(data->last_mode != data->mode) {
-          pid_reset(&data->pid, error, data->last_pwm);
-        }
-
-        double pwm = pid_update(&data->pid, error);
-        motor_setPWM(motor_id, pwm);
-      }
-      break;
-
       case MOTOR_MODE_SPEED:
       {
         double error = data->speed_target - data->speed;
 
-        if(data->last_mode != data->mode) {
-          pid_reset(&data->pid, error, data->last_pwm);
-        }
-
-        double pwm = pid_update(&data->pid, error);
+        bool reset = data->last_mode != data->mode;
+        double pwm = pid_update(&data->pid, error, reset);
         motor_setPWM(motor_id, pwm);
       }
 
@@ -164,16 +134,8 @@ void motor_run(void) {
   }
 }
 
-void motor_move(motor_E motor_id, int32_t count) {
-  motor_data_S *data = &motor_datas[motor_id];
-  data->pid.config = motor_count_pid_config;
-  data->count_target = data->count + count;
-  data->mode = MOTOR_MODE_COUNT;
-}
-
 void motor_setSpeed(motor_E motor_id, double speed) {
   motor_data_S *data = &motor_datas[motor_id];
-  data->pid.config = motor_speed_pid_config;
   data->speed_target = speed;
   data->mode = MOTOR_MODE_SPEED;
 }
@@ -188,7 +150,11 @@ void motor_resetCount(motor_E motor_id) {
 }
 
 int32_t motor_getCount(motor_E motor_id) {
-  return motor_datas[motor_id].count = 0;
+  return motor_datas[motor_id].count;
+}
+
+double motor_getSpeed(motor_E motor_id) {
+  return motor_datas[motor_id].speed;
 }
 
 bool motor_getFault(void) {
