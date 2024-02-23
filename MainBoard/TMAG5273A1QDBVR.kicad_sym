@@ -30,7 +30,7 @@
         (name "SCL" (effects (font (size 1.27 1.27))))
         (number "1" (effects (font (size 1.27 1.27))))
       )
-      (pin power_out line (at 10.16 0.635 0) (length 7.62)
+      (pin power_in line (at 10.16 0.635 0) (length 7.62)
         (name "GND" (effects (font (size 1.27 1.27))))
         (number "2" (effects (font (size 1.27 1.27))))
       )
