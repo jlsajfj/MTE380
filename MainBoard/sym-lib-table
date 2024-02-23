@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "MainBoard")(type "KiCad")(uri "${KIPRJMOD}/MainBoard.kicad_sym")(options "")(descr ""))
+  (lib (name "TMAG5273A1QDBVR")(type "KiCad")(uri "${KIPRJMOD}/TMAG5273A1QDBVR.kicad_sym")(options "")(descr ""))
+)

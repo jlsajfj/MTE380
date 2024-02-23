@@ -1,4 +1,0 @@
-(fp_lib_table
-  (version 7)
-  (lib (name "LaserScanner")(type "KiCad")(uri "/home/rio/code/MTE380/LaserScanner")(options "")(descr ""))
-)
