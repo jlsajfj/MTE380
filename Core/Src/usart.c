@@ -21,10 +21,16 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
+#include <string.h>
 
+#define UART_BUFF_SIZE 1024
+static uint8_t uart_buff[UART_BUFF_SIZE * 2]; // two banks
+static uint16_t uart_buff_len;
+static volatile uint8_t uart_buff_bank;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USART2 init function */
 
@@ -32,7 +38,8 @@ void MX_USART2_UART_Init(void)
 {
 
   /* USER CODE BEGIN USART2_Init 0 */
-
+  uart_buff_len = 0;
+  uart_buff_bank = 0;
   /* USER CODE END USART2_Init 0 */
 
   /* USER CODE BEGIN USART2_Init 1 */
@@ -80,6 +87,25 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+    /* USART2 DMA Init */
+    /* USART2_TX Init */
+    hdma_usart2_tx.Instance = DMA1_Stream6;
+    hdma_usart2_tx.Init.Channel = DMA_CHANNEL_4;
+    hdma_usart2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_usart2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart2_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart2_tx.Init.Mode = DMA_NORMAL;
+    hdma_usart2_tx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+    hdma_usart2_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart2_tx);
+
     /* USART2 interrupt Init */
     HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
@@ -106,6 +132,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     */
     HAL_GPIO_DeInit(GPIOA, USART_TX_Pin|USART_RX_Pin);
 
+    /* USART2 DMA DeInit */
+    HAL_DMA_DeInit(uartHandle->hdmatx);
+
     /* USART2 interrupt Deinit */
     HAL_NVIC_DisableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspDeInit 1 */
@@ -117,7 +146,24 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 /* USER CODE BEGIN 1 */
 int _write(int file, char *ptr, int len) {
   (void) file;
-  HAL_StatusTypeDef status = HAL_UART_Transmit(&huart2, (uint8_t*) ptr, len, 100);
-  return status == HAL_OK ? len : 0;
+
+  if(UART_BUFF_SIZE - uart_buff_len < len) {
+    len = UART_BUFF_SIZE - uart_buff_len;
+  }
+
+  if(len > 0) {
+    memcpy(uart_buff + uart_buff_len + uart_buff_bank * UART_BUFF_SIZE, ptr, len);
+    uart_buff_len += len;
+  }
+
+  return len;
+}
+
+void uart_flush(void) {
+  if(uart_buff_len > 0) {
+    HAL_UART_Transmit_DMA(&huart2, uart_buff + uart_buff_bank * UART_BUFF_SIZE, uart_buff_len);
+    uart_buff_bank ^= 1;
+    uart_buff_len = 0;
+  }
 }
 /* USER CODE END 1 */

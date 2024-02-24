@@ -140,6 +140,7 @@ int main(void)
     control_run();
     servo_run();
     motor_run();
+    uart_flush();
   }
   /* USER CODE END 3 */
 }

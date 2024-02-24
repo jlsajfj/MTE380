@@ -150,13 +150,13 @@ void command_run(void) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-  HAL_UART_Transmit(huart, (uint8_t*) &rx_char, 1, 100);
+  _write(0, &rx_char, 1);
   HAL_UART_Receive_IT(huart, (uint8_t*) &rx_char, 1);
 
   if(rx_char == '\b') {
     if(rx_idx > 0) {
       uint8_t erase[] = " \b";
-      HAL_UART_Transmit(huart, erase, 2, 100);
+      _write(0, erase, 2);
       rx_idx--;
     }
   } else if(rx_char == '\r' || rx_char == '\n') {
