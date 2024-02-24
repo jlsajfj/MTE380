@@ -18,6 +18,7 @@ void motor_init(void);
 void motor_run(void);
 
 void motor_setSpeed(motor_E motor_id, double speed);
+void motor_setPWM(motor_E motor_id, double pwm);
 void motor_stop(motor_E motor_id);
 
 int32_t motor_getCount(motor_E motor_id);

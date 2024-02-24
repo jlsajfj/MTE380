@@ -76,8 +76,6 @@ static pid_config_S motor_pid_config = {
 
 static motor_data_S motor_datas[MOTOR_COUNT];
 
-static void motor_setPWM(motor_E motor_id, double pwm);
-
 void motor_init(void) {
   for(motor_E motor_id = M1; motor_id < MOTOR_COUNT; motor_id++) {
     const motor_definition_S *motor = &motors[motor_id];
@@ -110,10 +108,11 @@ void motor_run(void) {
     data->speed = alpha * data->speed + (1 - alpha) * count_diff;
 
     // state machine
-    motor_mode_E next_mode = data->mode;
     switch(data->mode) {
       case MOTOR_MODE_STOP:
-        motor_setPWM(motor_id, 0.0);
+        if(data->last_mode != data->mode) {
+          motor_setPWM(motor_id, 0.0);
+        }
         break;
 
       case MOTOR_MODE_SPEED:
@@ -130,7 +129,6 @@ void motor_run(void) {
     }
 
     data->last_mode = data->mode;
-    data->mode = next_mode;
   }
 }
 
@@ -165,7 +163,7 @@ void motor_setEnabled(bool enabled) {
   HAL_GPIO_WritePin(MtrDvr_EN_GPIO_Port, MtrDvr_EN_Pin, enabled ? GPIO_PIN_RESET : GPIO_PIN_SET);
 }
 
-static void motor_setPWM(motor_E motor_id, double pwm) {
+void motor_setPWM(motor_E motor_id, double pwm) {
   const motor_definition_S *motor = &motors[motor_id];
   motor_data_S *data = &motor_datas[motor_id];
   const bool reversed = (pwm < 0) != motor->flip_dir;

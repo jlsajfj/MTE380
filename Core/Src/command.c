@@ -155,7 +155,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
   if(rx_char == '\b') {
     if(rx_idx > 0) {
-      uint8_t erase[] = " \b";
+      char erase[] = " \b";
       _write(0, erase, 2);
       rx_idx--;
     }

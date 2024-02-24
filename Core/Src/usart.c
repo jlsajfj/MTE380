@@ -21,12 +21,14 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
+#include <stdbool.h>
 #include <string.h>
 
-#define UART_BUFF_SIZE 1024
+#define UART_BUFF_SIZE 8192
 static uint8_t uart_buff[UART_BUFF_SIZE * 2]; // two banks
 static uint16_t uart_buff_len;
-static volatile uint8_t uart_buff_bank;
+static uint8_t uart_buff_bank;
+static volatile bool uart_dma_ready;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart2;
@@ -40,13 +42,14 @@ void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 0 */
   uart_buff_len = 0;
   uart_buff_bank = 0;
+  uart_dma_ready = true;
   /* USER CODE END USART2_Init 0 */
 
   /* USER CODE BEGIN USART2_Init 1 */
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 1382400;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -151,19 +154,26 @@ int _write(int file, char *ptr, int len) {
     len = UART_BUFF_SIZE - uart_buff_len;
   }
 
+  uint8_t *addr = uart_buff + uart_buff_len + uart_buff_bank * UART_BUFF_SIZE;
+  uart_buff_len += len;
+
   if(len > 0) {
-    memcpy(uart_buff + uart_buff_len + uart_buff_bank * UART_BUFF_SIZE, ptr, len);
-    uart_buff_len += len;
+    memcpy(addr, ptr, len);
   }
 
   return len;
 }
 
 void uart_flush(void) {
-  if(uart_buff_len > 0) {
+  if(uart_dma_ready && uart_buff_len > 0) {
+    uart_dma_ready = false;
     HAL_UART_Transmit_DMA(&huart2, uart_buff + uart_buff_bank * UART_BUFF_SIZE, uart_buff_len);
     uart_buff_bank ^= 1;
     uart_buff_len = 0;
   }
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef * huart) {
+  uart_dma_ready = true;
 }
 /* USER CODE END 1 */
