@@ -10,6 +10,7 @@
 typedef enum {
   MOTOR_MODE_STOP,
   MOTOR_MODE_SPEED,
+  MOTOR_MODE_PWM,
 } motor_mode_E;
 
 typedef struct {
@@ -76,6 +77,8 @@ static pid_config_S motor_pid_config = {
 
 static motor_data_S motor_datas[MOTOR_COUNT];
 
+static void motor_setPWM_private(motor_E motor_id, double pwm);
+
 void motor_init(void) {
   for(motor_E motor_id = M1; motor_id < MOTOR_COUNT; motor_id++) {
     const motor_definition_S *motor = &motors[motor_id];
@@ -121,7 +124,10 @@ void motor_run(void) {
 
         bool reset = data->last_mode != data->mode;
         double pwm = pid_update(&data->pid, error, reset);
-        motor_setPWM(motor_id, pwm);
+
+        motor_setPWM_private(motor_id, pwm);
+
+        break;
       }
 
       default:
@@ -143,10 +149,6 @@ void motor_stop(motor_E motor_id) {
   data->mode = MOTOR_MODE_STOP;
 }
 
-void motor_resetCount(motor_E motor_id) {
-  motor_datas[motor_id].count = 0;
-}
-
 int32_t motor_getCount(motor_E motor_id) {
   return motor_datas[motor_id].count;
 }
@@ -164,6 +166,12 @@ void motor_setEnabled(bool enabled) {
 }
 
 void motor_setPWM(motor_E motor_id, double pwm) {
+  motor_data_S *data = &motor_datas[motor_id];
+  data->mode = MOTOR_MODE_PWM;
+  motor_setPWM_private(motor_id, pwm);
+}
+
+static void motor_setPWM_private(motor_E motor_id, double pwm) {
   const motor_definition_S *motor = &motors[motor_id];
   motor_data_S *data = &motor_datas[motor_id];
   const bool reversed = (pwm < 0) != motor->flip_dir;

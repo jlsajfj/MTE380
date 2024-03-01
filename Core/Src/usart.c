@@ -151,7 +151,7 @@ int _write(int file, char *ptr, int len) {
   (void) file;
 
   if(UART_BUFF_SIZE - uart_buff_len < len) {
-    len = UART_BUFF_SIZE - uart_buff_len;
+    return 0;
   }
 
   uint8_t *addr = uart_buff + uart_buff_len + uart_buff_bank * UART_BUFF_SIZE;

@@ -5,6 +5,7 @@
 #include "helper.h"
 #include "pid.h"
 #include "compass.h"
+#include "usart.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -35,8 +36,10 @@ static pid_config_S pid_conf_aim = {
 };
 
 static pid_data_S pid;
+static bool debug;
 
 void control_init(void) {
+  debug = false;
   pid_init(&pid);
 }
 
@@ -60,8 +63,6 @@ void control_run(void) {
       case CONTROL_STATE_RUN:
         pid.config = pid_conf_sensor;
         reset_pid = true;
-        motor_resetCount(M1);
-        motor_resetCount(M2);
 
       case CONTROL_STATE_STOP:
         motor_stop(M1);
@@ -137,10 +138,19 @@ void control_run(void) {
 
       break;
     }
+  }
 
-    case CONTROL_STATE_DEBUG:
-      printf("e%10.4lf a%10.4lf m1%10ld m2%10ld h%10.4lf\n", sensor_getResult(), sensor_getAverage(), motor_getCount(M1), motor_getCount(M2), compass_getHeading());
-      break;
+  if(debug) {
+    printf("%ld %.4lf %.4lf %ld %ld %.4lf %.4lf %.4lf\n",
+      HAL_GetTick(),
+      sensor_getResult(),
+      sensor_getAverage(),
+      motor_getCount(M1),
+      motor_getCount(M2),
+      motor_getSpeed(M1),
+      motor_getSpeed(M2),
+      compass_getHeading()
+    );
   }
 }
 
@@ -150,4 +160,13 @@ void control_setState(control_state_E state) {
 
 control_state_E control_getState(void) {
   return control_state;
+}
+
+void control_debug(int8_t d) {
+  if(d == 0)
+    debug = false;
+  else if(d == 1)
+    debug = true;
+  else if(d == -1)
+    debug ^= 1;
 }

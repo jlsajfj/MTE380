@@ -22,7 +22,6 @@ void motor_setPWM(motor_E motor_id, double pwm);
 void motor_stop(motor_E motor_id);
 
 int32_t motor_getCount(motor_E motor_id);
-void motor_resetCount(motor_E motor_id);
 double motor_getSpeed(motor_E motor_id);
 
 bool motor_getFault(void);

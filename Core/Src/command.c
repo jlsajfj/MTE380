@@ -24,6 +24,7 @@ static uint16_t rx_idx = 0;
 
 static volatile bool rx_pend = false;
 static uint16_t rx_len = 0;
+static bool echo = true;
 
 static uint16_t btn_dbc = 0;
 
@@ -35,7 +36,7 @@ void command_run(void) {
   uint32_t tick = HAL_GetTick();
 
   bool btn = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET;
-  bool btn_rise = btn && (tick - btn_dbc) > 500;
+  bool btn_rise = btn && (tick - btn_dbc) > 100;
   if(btn) btn_dbc = tick;
 
   if(btn_rise) {
@@ -68,8 +69,36 @@ void command_run(void) {
     } else if(MATCH_CMD("calibrate")) {
       control_setState(CONTROL_STATE_CALIBRATE);
 
-    } else if(MATCH_CMD("debug")) {
-      control_setState(CONTROL_STATE_DEBUG);
+    } else if(MATCH_CMD_N("debug ", 6)) {
+      uint16_t arg_start = 5; while(isspace(rx_buff[arg_start]) && arg_start < rx_len) arg_start++;
+
+      if(strcmp("on", rx_buff + arg_start) == 0) {
+        control_debug(1);
+      } else if(strcmp("off", rx_buff + arg_start) == 0) {
+        control_debug(0);
+      } else {
+        control_debug(-1);
+      }
+
+    } else if(MATCH_CMD_N("speed ", 6)) {
+      uint16_t speed_start = 5; while(isspace(rx_buff[speed_start]) && speed_start < rx_len) speed_start++;
+
+      double speed = 0.0f;
+      if(sscanf((const char*) (rx_buff + speed_start), "%lf", &speed) == 1) {
+        motor_setSpeed(M1, speed);
+        motor_setSpeed(M2, speed);
+      }
+
+    } else if(MATCH_CMD_N("echo ", 5)) {
+      uint16_t arg_start = 4; while(isspace(rx_buff[arg_start]) && arg_start < rx_len) arg_start++;
+
+      if(strcmp("on", rx_buff + arg_start) == 0) {
+        echo = true;
+      } else if(strcmp("off", rx_buff + arg_start) == 0) {
+        echo = false;
+      } else {
+        echo ^= 1;
+      }
 
     } else if(MATCH_CMD_N("servo ", 6)) {
       uint16_t position_start = 5; while(isspace(rx_buff[position_start]) && position_start < rx_len) position_start++;
@@ -150,13 +179,13 @@ void command_run(void) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-  _write(0, &rx_char, 1);
+  if(echo) _write(0, &rx_char, 1);
   HAL_UART_Receive_IT(huart, (uint8_t*) &rx_char, 1);
 
   if(rx_char == '\b') {
     if(rx_idx > 0) {
       char erase[] = " \b";
-      _write(0, erase, 2);
+      if(echo) _write(0, erase, 2);
       rx_idx--;
     }
   } else if(rx_char == '\r' || rx_char == '\n') {
