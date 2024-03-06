@@ -24,7 +24,4 @@ void motor_stop(motor_E motor_id);
 int32_t motor_getCount(motor_E motor_id);
 double motor_getSpeed(motor_E motor_id);
 
-bool motor_getFault(void);
-void motor_setEnabled(bool enabled);
-
 #endif /* INC_MOTOR_H_ */

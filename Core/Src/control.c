@@ -22,8 +22,8 @@ static pid_config_S pid_conf_sensor = {
   .ki = CONFIG_ENTRY_CTRL_KI,
   .kd = CONFIG_ENTRY_CTRL_KD,
 
-  .output_max =  12.0,
-  .output_min = -12.0,
+  .output_max =  10.0,
+  .output_min = -10.0,
 };
 
 static pid_config_S pid_conf_aim = {
@@ -31,8 +31,8 @@ static pid_config_S pid_conf_aim = {
   .ki = CONFIG_ENTRY_AIM_KI,
   .kd = CONFIG_ENTRY_AIM_KD,
 
-  .output_max =  1.0,
-  .output_min = -1.0,
+  .output_max =  3.0,
+  .output_min = -3.0,
 };
 
 static pid_data_S pid;
@@ -105,18 +105,18 @@ void control_run(void) {
       double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
 
       if(u > 0) {
-        motor_setSpeed(M1, speed - u / 2);
-        motor_setSpeed(M2, speed + u / 2);
+        motor_setSpeed(M1, speed + u / 2);
+        motor_setSpeed(M2, speed - u / 2);
       } else {
-        motor_setSpeed(M1, speed - u / 2);
-        motor_setSpeed(M2, speed + u / 2);
+        motor_setSpeed(M1, speed + u / 2);
+        motor_setSpeed(M2, speed - u / 2);
       }
 
       break;
     }
 
     case CONTROL_STATE_CALIBRATE:
-      if(HAL_GetTick() - cal_start > 3500) {
+      if(HAL_GetTick() - cal_start > 4500) {
         control_state_next = CONTROL_STATE_STOP;
       }
       break;
@@ -129,11 +129,11 @@ void control_run(void) {
       double speed = config_get(CONFIG_ENTRY_AIM_SP);
 
       if(u > 0) {
-        motor_setSpeed(M1, speed - u / 2);
-        motor_setSpeed(M2, speed + u / 2);
+        motor_setSpeed(M1, speed + u / 2);
+        motor_setSpeed(M2, speed - u / 2);
       } else {
-        motor_setSpeed(M1, speed - u / 2);
-        motor_setSpeed(M2, speed + u / 2);
+        motor_setSpeed(M1, speed + u / 2);
+        motor_setSpeed(M2, speed - u / 2);
       }
 
       break;

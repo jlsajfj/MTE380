@@ -17,7 +17,8 @@ double pid_update(pid_data_S *data, double error, bool reset) {
    double diff;
    if(reset) {
       data->error_last = error;
-      data->error_accu = (data->output - kp * error) / ki;
+      //data->error_accu = (data->output - kp * error) / ki;
+      data->error_accu = 0.0;
       diff = 0.0;
    } else {
       diff = error - data->error_last;

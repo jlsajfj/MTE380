@@ -48,10 +48,10 @@ static const motor_definition_S motors[MOTOR_COUNT] = {
     .pwm_reg           = &TIM4->CCR2,
     .pwm_timer         = &htim4,
     .pwm_timer_channel = TIM_CHANNEL_2,
-    .enc_reg           = &TIM3->CNT,
-    .enc_timer         = &htim3,
-    .flip_dir          = false,
-    .flip_enc          = true,
+    .enc_reg           = &TIM1->CNT,
+    .enc_timer         = &htim1,
+    .flip_dir          = true,
+    .flip_enc          = false,
   },
   [M2] = {
     .dir_port          = MtrDvr_Dir2_GPIO_Port,
@@ -59,10 +59,10 @@ static const motor_definition_S motors[MOTOR_COUNT] = {
     .pwm_reg           = &TIM4->CCR1,
     .pwm_timer         = &htim4,
     .pwm_timer_channel = TIM_CHANNEL_1,
-    .enc_reg           = &TIM1->CNT,
-    .enc_timer         = &htim1,
-    .flip_dir          = true,
-    .flip_enc          = false,
+    .enc_reg           = &TIM3->CNT,
+    .enc_timer         = &htim3,
+    .flip_dir          = false,
+    .flip_enc          = true,
   },
 };
 
@@ -92,8 +92,6 @@ void motor_init(void) {
     HAL_TIM_PWM_Start(motor->pwm_timer, motor->pwm_timer_channel);
     HAL_TIM_Encoder_Start(motor->enc_timer, TIM_CHANNEL_ALL);
   }
-
-  motor_setEnabled(true);
 }
 
 void motor_run(void) {
@@ -157,14 +155,6 @@ double motor_getSpeed(motor_E motor_id) {
   return motor_datas[motor_id].speed;
 }
 
-bool motor_getFault(void) {
-  return !HAL_GPIO_ReadPin(MtrDvr_Fault_GPIO_Port, MtrDvr_Fault_Pin);
-}
-
-void motor_setEnabled(bool enabled) {
-  HAL_GPIO_WritePin(MtrDvr_EN_GPIO_Port, MtrDvr_EN_Pin, enabled ? GPIO_PIN_RESET : GPIO_PIN_SET);
-}
-
 void motor_setPWM(motor_E motor_id, double pwm) {
   motor_data_S *data = &motor_datas[motor_id];
   data->mode = MOTOR_MODE_PWM;
@@ -179,5 +169,5 @@ static void motor_setPWM_private(motor_E motor_id, double pwm) {
   HAL_GPIO_WritePin(motor->dir_port, motor->dir_pin, reversed ? GPIO_PIN_SET : GPIO_PIN_RESET);
 
   data->last_pwm = pwm;
-  *motor->pwm_reg = (uint32_t) (MIN(ABS(pwm), 1.0) * 1024); // PWM timer from 0 - 1024
+  *motor->pwm_reg = (uint32_t) (MIN(ABS(pwm), 1.0) * (motor->pwm_timer->Init.Period + 1));
 }

@@ -89,6 +89,15 @@ void command_run(void) {
         motor_setSpeed(M2, speed);
       }
 
+    } else if(MATCH_CMD_N("pwm ", 4)) {
+      uint16_t speed_start = 3; while(isspace(rx_buff[speed_start]) && speed_start < rx_len) speed_start++;
+
+      double speed = 0.0f;
+      if(sscanf((const char*) (rx_buff + speed_start), "%lf", &speed) == 1) {
+        motor_setPWM(M1, speed);
+        motor_setPWM(M2, speed);
+      }
+
     } else if(MATCH_CMD_N("echo ", 5)) {
       uint16_t arg_start = 4; while(isspace(rx_buff[arg_start]) && arg_start < rx_len) arg_start++;
 

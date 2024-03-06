@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define UART_BUFF_SIZE 8192
+#define UART_BUFF_SIZE 4096
 static uint8_t uart_buff[UART_BUFF_SIZE * 2]; // two banks
 static uint16_t uart_buff_len;
 static uint8_t uart_buff_bank;
@@ -49,7 +49,7 @@ void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 1382400;
+  huart2.Init.BaudRate = 115200;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
