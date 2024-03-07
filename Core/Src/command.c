@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 
 static char rx_char = 0;
 static char rx_buff[64] = {0};
@@ -42,7 +43,8 @@ void command_run(void) {
   if(btn_rise) {
     switch(control_getState()) {
       case CONTROL_STATE_STOP:
-        control_setState(CONTROL_STATE_RUN);
+        //control_setState(CONTROL_STATE_RUN);
+        control_setState(CONTROL_STATE_DEMO_1);
         break;
 
       default:
@@ -58,8 +60,13 @@ void command_run(void) {
     if(MATCH_CMD("start")) {
       control_setState(CONTROL_STATE_RUN);
 
-    } else if(MATCH_CMD("aim")) {
-      control_setState(CONTROL_STATE_AIM);
+    } else if(MATCH_CMD_N("aim ", 4)) {
+      uint16_t heading_start = 3; while(isspace(rx_buff[heading_start]) && heading_start < rx_len) heading_start++;
+
+      double heading = 0.0f;
+      if(sscanf((const char*) (rx_buff + heading_start), "%lf", &heading) == 1) {
+        control_aim(heading / 180.0 * M_PI);
+      }
 
     } else if(MATCH_CMD("stop")) {
       control_setState(CONTROL_STATE_STOP);
@@ -68,6 +75,9 @@ void command_run(void) {
 
     } else if(MATCH_CMD("calibrate")) {
       control_setState(CONTROL_STATE_CALIBRATE);
+
+    } else if(MATCH_CMD("demo")) {
+      control_setState(CONTROL_STATE_DEMO_1);
 
     } else if(MATCH_CMD_N("debug ", 6)) {
       uint16_t arg_start = 5; while(isspace(rx_buff[arg_start]) && arg_start < rx_len) arg_start++;
@@ -90,12 +100,12 @@ void command_run(void) {
       }
 
     } else if(MATCH_CMD_N("pwm ", 4)) {
-      uint16_t speed_start = 3; while(isspace(rx_buff[speed_start]) && speed_start < rx_len) speed_start++;
+      uint16_t pwm_start = 3; while(isspace(rx_buff[pwm_start]) && pwm_start < rx_len) pwm_start++;
 
-      double speed = 0.0f;
-      if(sscanf((const char*) (rx_buff + speed_start), "%lf", &speed) == 1) {
-        motor_setPWM(M1, speed);
-        motor_setPWM(M2, speed);
+      double pwm = 0.0f;
+      if(sscanf((const char*) (rx_buff + pwm_start), "%lf", &pwm) == 1) {
+        motor_setPWM(M1, pwm);
+        motor_setPWM(M2, pwm);
       }
 
     } else if(MATCH_CMD_N("echo ", 5)) {

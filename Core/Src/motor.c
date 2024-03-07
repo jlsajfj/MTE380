@@ -102,7 +102,7 @@ void motor_run(void) {
     // update counter and speed
     uint16_t count_raw = motor->flip_enc ? (*motor->enc_reg) : (-*motor->enc_reg);
 
-    int32_t count_diff = (int16_t) (count_raw - (uint16_t) data->count);
+    int16_t count_diff = count_raw - (uint16_t) data->count;
     data->count += count_diff;
 
     const double alpha = config_get(CONFIG_ENTRY_SPEED_ALPHA);

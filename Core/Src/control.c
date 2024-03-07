@@ -11,11 +11,12 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 
 static control_state_E control_state = CONTROL_STATE_STOP;
 static control_state_E control_state_next = CONTROL_STATE_STOP;
 
-static uint32_t cal_start;
+static uint32_t state_start;
 
 static pid_config_S pid_conf_sensor = {
   .kp = CONFIG_ENTRY_CTRL_KP,
@@ -36,6 +37,7 @@ static pid_config_S pid_conf_aim = {
 };
 
 static pid_data_S pid;
+static double aim_target;
 static bool debug;
 
 void control_init(void) {
@@ -70,7 +72,6 @@ void control_run(void) {
         break;
 
       case CONTROL_STATE_CALIBRATE:
-        cal_start = HAL_GetTick();
         compass_calibrate_start();
         motor_setSpeed(M1, 0.5);
         motor_setSpeed(M2, -0.5);
@@ -80,9 +81,31 @@ void control_run(void) {
         pid.config = pid_conf_aim;
         reset_pid = true;
 
+      case CONTROL_STATE_DEMO_1:
+        motor_setSpeed(M1, 1);
+        motor_setSpeed(M2, 1);
+        break;
+
+      case CONTROL_STATE_DEMO_2:
+        motor_setSpeed(M1, -1);
+        motor_setSpeed(M2, -1);
+        break;
+
+      case CONTROL_STATE_DEMO_3:
+        motor_setSpeed(M1, 1);
+        motor_setSpeed(M2, -1);
+        break;
+
+      case CONTROL_STATE_DEMO_4:
+        motor_setSpeed(M1, -1);
+        motor_setSpeed(M2, 1);
+        break;
+
       default:
         break;
     }
+
+    state_start = HAL_GetTick();
   }
 
   switch(control_state) {
@@ -105,39 +128,52 @@ void control_run(void) {
       double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
 
       if(u > 0) {
-        motor_setSpeed(M1, speed + u / 2);
-        motor_setSpeed(M2, speed - u / 2);
+        motor_setSpeed(M1, speed - u / 2);
+        motor_setSpeed(M2, speed + u / 2);
       } else {
-        motor_setSpeed(M1, speed + u / 2);
-        motor_setSpeed(M2, speed - u / 2);
+        motor_setSpeed(M1, speed - u / 2);
+        motor_setSpeed(M2, speed + u / 2);
       }
 
       break;
     }
 
     case CONTROL_STATE_CALIBRATE:
-      if(HAL_GetTick() - cal_start > 4500) {
+      if(HAL_GetTick() - state_start > 5000) {
         control_state_next = CONTROL_STATE_STOP;
       }
       break;
 
     case CONTROL_STATE_AIM:
     {
-      double input = compass_getHeading(); // TODO set target
+      double input = fmod(aim_target - compass_getHeading() + M_PI, 2 * M_PI) - M_PI;
       double u = pid_update(&pid, input, reset_pid);
-
       double speed = config_get(CONFIG_ENTRY_AIM_SP);
 
       if(u > 0) {
-        motor_setSpeed(M1, speed + u / 2);
-        motor_setSpeed(M2, speed - u / 2);
+        motor_setSpeed(M1, speed - u / 2);
+        motor_setSpeed(M2, speed + u / 2);
       } else {
-        motor_setSpeed(M1, speed + u / 2);
-        motor_setSpeed(M2, speed - u / 2);
+        motor_setSpeed(M1, speed - u / 2);
+        motor_setSpeed(M2, speed + u / 2);
       }
 
       break;
     }
+
+    case CONTROL_STATE_DEMO_1:
+    case CONTROL_STATE_DEMO_2:
+    case CONTROL_STATE_DEMO_3:
+      if(HAL_GetTick() - state_start > 3000) {
+        control_state_next = control_state + 1;
+      }
+      break;
+
+    case CONTROL_STATE_DEMO_4:
+      if(HAL_GetTick() - state_start > 3000) {
+        control_state_next = CONTROL_STATE_STOP;
+      }
+      break;
   }
 
   if(debug) {
@@ -160,6 +196,11 @@ void control_setState(control_state_E state) {
 
 control_state_E control_getState(void) {
   return control_state;
+}
+
+void control_aim(double heading) {
+  aim_target = heading;
+  control_setState(CONTROL_STATE_AIM);
 }
 
 void control_debug(int8_t d) {

@@ -3,6 +3,7 @@
 #include "helper.h"
 
 #include <stdbool.h>
+#include <math.h>
 
 void pid_init(pid_data_S *data) {
    data->error_accu = 0;
@@ -36,6 +37,10 @@ double pid_update(pid_data_S *data, double error, bool reset) {
       data->output = pd_output + ki * accu;
    } else {
       data->output = SATURATE(pd_output, data->config.output_min, data->config.output_max);
+   }
+
+   if(isnan(data->output)) {
+      data->output = 0.0;
    }
 
    return data->output;
