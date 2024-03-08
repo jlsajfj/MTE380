@@ -119,8 +119,8 @@ void command_run(void) {
         echo ^= 1;
       }
 
-    } else if(MATCH_CMD_N("servo ", 6)) {
-      uint16_t position_start = 5; while(isspace(rx_buff[position_start]) && position_start < rx_len) position_start++;
+    } else if(MATCH_CMD_N("kick ", 5)) {
+      uint16_t position_start = 4; while(isspace(rx_buff[position_start]) && position_start < rx_len) position_start++;
 
       double position = 0.0f;
       double valid = true;
@@ -135,7 +135,28 @@ void command_run(void) {
 
       if(valid) {
         printf("set servo to %f\n", position);
-        servo_setPosition(position);
+        servo_setPosition(S1, position);
+      } else {
+        puts("invalid value");
+      }
+
+    } else if(MATCH_CMD_N("hook ", 5)) {
+      uint16_t position_start = 4; while(isspace(rx_buff[position_start]) && position_start < rx_len) position_start++;
+
+      double position = 0.0f;
+      double valid = true;
+
+      if(strcmp("lock", rx_buff + position_start) == 0) {
+        position = config_get(CONFIG_ENTRY_SERVO_LOCK);
+      } else if(strcmp("unlock", rx_buff + position_start) == 0) {
+        position = config_get(CONFIG_ENTRY_SERVO_UNLOCK);
+      } else if(sscanf((const char*) (rx_buff + position_start), "%lf", &position) != 1) {
+        valid = false;
+      }
+
+      if(valid) {
+        printf("set servo to %f\n", position);
+        servo_setPosition(S2, position);
       } else {
         puts("invalid value");
       }
