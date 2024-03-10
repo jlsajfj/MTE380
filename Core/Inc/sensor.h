@@ -13,4 +13,6 @@ double sensor_getAverage(void);
 void sensor_calibrate_white(void);
 void sensor_calibrate_black(void);
 
+double sensor_getVBatt(void);
+
 #endif

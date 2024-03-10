@@ -41,16 +41,25 @@ void command_run(void) {
   if(btn) btn_dbc = tick;
 
   if(btn_rise) {
-    switch(control_getState()) {
-      case CONTROL_STATE_STOP:
-        //control_setState(CONTROL_STATE_RUN);
-        control_setState(CONTROL_STATE_DEMO_1);
-        break;
-
-      default:
-        control_setState(CONTROL_STATE_STOP);
-        break;
+    static bool locked = true;
+    double position = 0.0;
+    if(locked) {
+        position = config_get(CONFIG_ENTRY_SERVO_LOCK);
+    } else {
+        position = config_get(CONFIG_ENTRY_SERVO_UNLOCK);
     }
+    servo_setPosition(S1, position);
+    locked ^= 1;
+
+    //switch(control_getState()) {
+    //  case CONTROL_STATE_STOP:
+    //    control_setState(CONTROL_STATE_RUN);
+    //    break;
+
+    //  default:
+    //    control_setState(CONTROL_STATE_STOP);
+    //    break;
+    //}
   }
 
 #define MATCH_CMD(x) (strlen(x) == rx_len && strncmp((x), (const char*) rx_buff, rx_len) == 0)
@@ -75,9 +84,6 @@ void command_run(void) {
 
     } else if(MATCH_CMD("calibrate")) {
       control_setState(CONTROL_STATE_CALIBRATE);
-
-    } else if(MATCH_CMD("demo")) {
-      control_setState(CONTROL_STATE_DEMO_1);
 
     } else if(MATCH_CMD_N("debug ", 6)) {
       uint16_t arg_start = 5; while(isspace(rx_buff[arg_start]) && arg_start < rx_len) arg_start++;

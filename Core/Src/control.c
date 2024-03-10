@@ -50,9 +50,11 @@ void control_run(void) {
 
   // state transition
   if(control_state_next != control_state) {
+    // state end action
     switch(control_state) {
       case CONTROL_STATE_CALIBRATE:
-        compass_calibrate_end();
+      case CONTROL_STATE_AIM:
+        compass_setState(COMPASS_STATE_IDLE);
         break;
 
       default:
@@ -61,6 +63,7 @@ void control_run(void) {
 
     control_state = control_state_next;
 
+    // state start action
     switch(control_state) {
       case CONTROL_STATE_RUN:
         pid.config = pid_conf_sensor;
@@ -72,33 +75,15 @@ void control_run(void) {
         break;
 
       case CONTROL_STATE_CALIBRATE:
-        compass_calibrate_start();
+        compass_setState(COMPASS_STATE_CALIBRATE);
         motor_setSpeed(M1, 0.5);
         motor_setSpeed(M2, -0.5);
         break;
 
       case CONTROL_STATE_AIM:
+        compass_setState(COMPASS_STATE_RUN);
         pid.config = pid_conf_aim;
         reset_pid = true;
-
-      case CONTROL_STATE_DEMO_1:
-        motor_setSpeed(M1, 1);
-        motor_setSpeed(M2, 1);
-        break;
-
-      case CONTROL_STATE_DEMO_2:
-        motor_setSpeed(M1, -1);
-        motor_setSpeed(M2, -1);
-        break;
-
-      case CONTROL_STATE_DEMO_3:
-        motor_setSpeed(M1, 1);
-        motor_setSpeed(M2, -1);
-        break;
-
-      case CONTROL_STATE_DEMO_4:
-        motor_setSpeed(M1, -1);
-        motor_setSpeed(M2, 1);
         break;
 
       default:
@@ -160,24 +145,10 @@ void control_run(void) {
 
       break;
     }
-
-    case CONTROL_STATE_DEMO_1:
-    case CONTROL_STATE_DEMO_2:
-    case CONTROL_STATE_DEMO_3:
-      if(HAL_GetTick() - state_start > 3000) {
-        control_state_next = control_state + 1;
-      }
-      break;
-
-    case CONTROL_STATE_DEMO_4:
-      if(HAL_GetTick() - state_start > 3000) {
-        control_state_next = CONTROL_STATE_STOP;
-      }
-      break;
   }
 
   if(debug) {
-    printf("%ld %.4lf %.4lf %ld %ld %.4lf %.4lf %.4lf\n",
+    printf("%ld %.4lf %.4lf %ld %ld %.4lf %.4lf %.4lf %.4lf\n",
       HAL_GetTick(),
       sensor_getResult(),
       sensor_getAverage(),
@@ -185,7 +156,8 @@ void control_run(void) {
       motor_getCount(M2),
       motor_getSpeed(M1),
       motor_getSpeed(M2),
-      compass_getHeading()
+      compass_getHeading(),
+      sensor_getVBatt()
     );
   }
 }
