@@ -42,13 +42,18 @@ static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
   [CONFIG_ENTRY_COUNT_KI]       = { "pi",             0.0  },
   [CONFIG_ENTRY_COUNT_KD]       = { "pd",             0.0  },
   [CONFIG_ENTRY_COUNT_SP]       = { "move_speed",     0.3  },
-  [CONFIG_ENTRY_START]          = { "start",          0.45 },
-  [CONFIG_ENTRY_FINISH]         = { "finish",         1.35 },
-  [CONFIG_ENTRY_COMPASS_MIN_X]  = { "compass_min_x", -100.0 },
-  [CONFIG_ENTRY_COMPASS_MIN_Y]  = { "compass_min_y",  100.0 },
-  [CONFIG_ENTRY_COMPASS_MAX_X]  = { "compass_max_x", -100.0 },
-  [CONFIG_ENTRY_COMPASS_MAX_Y]  = { "compass_max_y",  100.0 },
-  [CONFIG_ENTRY_COMPASS_ALPHA]  = { "aa",             0.0  },
+  [CONFIG_ENTRY_START_M]        = { "start_mean",     0.0  },
+  [CONFIG_ENTRY_START_V]        = { "start_var",      0.1  },
+  [CONFIG_ENTRY_FINISH_M]       = { "finish_mean",    0.6  },
+  [CONFIG_ENTRY_FINISH_V]       = { "finish_var",     0.6  },
+  [CONFIG_ENTRY_MEAN_THRESHOLD] = { "mean_thres",     0.05 },
+  [CONFIG_ENTRY_VAR_THRESHOLD]  = { "var_thres",  0.05 },
+  [CONFIG_ENTRY_COMPASS_V0]     = { "compass_cal_v0", 0.0  },
+  [CONFIG_ENTRY_COMPASS_V1]     = { "compass_cal_v1", 0.0  },
+  [CONFIG_ENTRY_COMPASS_W0]     = { "compass_cal_w0", 1.0  },
+  [CONFIG_ENTRY_COMPASS_W1]     = { "compass_cal_w1", 0.0  },
+  [CONFIG_ENTRY_COMPASS_W2]     = { "compass_cal_w2", 1.0  },
+  [CONFIG_ENTRY_COMPASS_W3]     = { "compass_cal_w3", 0.0  },
   [CONFIG_ENTRY_AIM_KP]         = { "ap",             1.0  },
   [CONFIG_ENTRY_AIM_KI]         = { "ai",             0.0  },
   [CONFIG_ENTRY_AIM_KD]         = { "ad",             0.0  },
@@ -73,6 +78,13 @@ double config_get(config_id_E id) {
     return config_values.values[id];
   }
   return 0.0;
+}
+
+double *config_getPtr(config_id_E id) {
+  if(id >= 0 && id < CONFIG_ENTRY_COUNT) {
+    return config_values.values + id;
+  }
+  return NULL;
 }
 
 double config_getByName(char *name) {

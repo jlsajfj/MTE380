@@ -34,7 +34,8 @@ static uint16_t adc_reading_raw[ADC_COUNT] = {0};
 static double adc_reading[ADC_COUNT] = {0.0};
 
 static double sensor_result = 0.0;
-static double sensor_average = 0.0;
+static double sensor_mean = 0.0;
+static double sensor_variance = 0.0;
 
 void sensor_init(void) {
 }
@@ -57,6 +58,7 @@ void sensor_run(void) {
 
           double result = 0.0;
           double sum = 0.0;
+          double ssum = 0.0;
 
           for(uint16_t i = 0; i < PD_COUNT; i++) {
             double white = config_get(CONFIG_ENTRY_SENSOR_WHITE_0 + i);
@@ -72,11 +74,13 @@ void sensor_run(void) {
             double normalized = NORMALIZE(adc_reading[i], black, white);
 
             sum += normalized;
+            ssum += normalized * normalized;
             result += SATURATE(normalized, 0, 1) * gain / total_gain;
           }
 
           sensor_result = result;
-          sensor_average = sum / PD_COUNT;
+          sensor_mean = sum / PD_COUNT;
+          sensor_variance = ssum / PD_COUNT - sensor_mean * sensor_mean;
 
           break;
         }
@@ -118,8 +122,12 @@ double sensor_getResult(void) {
   return sensor_result;
 }
 
-double sensor_getAverage(void) {
-  return sensor_average;
+double sensor_getMean(void) {
+  return sensor_mean;
+}
+
+double sensor_getVariance(void) {
+  return sensor_variance;
 }
 
 bool sensor_valid(void) {

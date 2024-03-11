@@ -34,11 +34,14 @@ void command_init(void) {
 }
 
 void command_run(void) {
-  uint32_t tick = HAL_GetTick();
-
   bool btn = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET;
-  bool btn_rise = btn && (tick - btn_dbc) > 100;
-  if(btn) btn_dbc = tick;
+  bool btn_rise = btn && btn_dbc == 0;
+
+  if(btn) {
+    btn_dbc = 100;
+  } else if(btn_dbc > 0) {
+    btn_dbc--;
+  }
 
   if(btn_rise) {
     static bool locked = true;
@@ -95,6 +98,10 @@ void command_run(void) {
       } else {
         control_debug(-1);
       }
+
+    } else if(MATCH_CMD("batt")) {
+      double vbatt = sensor_getVBatt();
+      printf("batt: %10.2lf\n", vbatt);
 
     } else if(MATCH_CMD_N("speed ", 6)) {
       uint16_t speed_start = 5; while(isspace(rx_buff[speed_start]) && speed_start < rx_len) speed_start++;

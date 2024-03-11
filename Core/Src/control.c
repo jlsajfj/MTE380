@@ -13,10 +13,8 @@
 #include <stdbool.h>
 #include <math.h>
 
-static control_state_E control_state = CONTROL_STATE_STOP;
-static control_state_E control_state_next = CONTROL_STATE_STOP;
-
-static uint32_t state_start;
+static control_state_E control_state;
+static control_state_E control_state_next;
 
 static pid_config_S pid_conf_sensor = {
   .kp = CONFIG_ENTRY_CTRL_KP,
@@ -37,10 +35,13 @@ static pid_config_S pid_conf_aim = {
 };
 
 static pid_data_S pid;
-static double aim_target;
+static uint32_t state_counter;
+static double control_target;
 static bool debug;
 
 void control_init(void) {
+  control_state = CONTROL_STATE_INIT;
+  control_state_next = CONTROL_STATE_STOP;
   debug = false;
   pid_init(&pid);
 }
@@ -52,9 +53,9 @@ void control_run(void) {
   if(control_state_next != control_state) {
     // state end action
     switch(control_state) {
-      case CONTROL_STATE_CALIBRATE:
-      case CONTROL_STATE_AIM:
-        compass_setState(COMPASS_STATE_IDLE);
+      case CONTROL_STATE_CALIBRATE_MOVE:
+        motor_setSpeed(M1, 0);
+        motor_setSpeed(M2, 0);
         break;
 
       default:
@@ -70,14 +71,18 @@ void control_run(void) {
         reset_pid = true;
 
       case CONTROL_STATE_STOP:
+        compass_setState(COMPASS_STATE_RUN);
         motor_stop(M1);
         motor_stop(M2);
         break;
 
       case CONTROL_STATE_CALIBRATE:
         compass_setState(COMPASS_STATE_CALIBRATE);
-        motor_setSpeed(M1, 0.5);
-        motor_setSpeed(M2, -0.5);
+        break;
+
+      case CONTROL_STATE_CALIBRATE_MOVE:
+        motor_setSpeed(M1,  1);
+        motor_setSpeed(M2, -1);
         break;
 
       case CONTROL_STATE_AIM:
@@ -90,7 +95,7 @@ void control_run(void) {
         break;
     }
 
-    state_start = HAL_GetTick();
+    state_counter = 0;
   }
 
   switch(control_state) {
@@ -99,10 +104,20 @@ void control_run(void) {
 
     case CONTROL_STATE_RUN:
     {
-      double average = sensor_getAverage();
-      double start_thres = config_get(CONFIG_ENTRY_START);
-      double finish_thres = config_get(CONFIG_ENTRY_FINISH);
-      if(average < start_thres || average > finish_thres) {
+      double mean = sensor_getMean();
+      double var = sensor_getVariance();
+
+      double start_mean = config_get(CONFIG_ENTRY_START_M);
+      double start_var = config_get(CONFIG_ENTRY_START_V);
+      double finish_mean = config_get(CONFIG_ENTRY_FINISH_M);
+      double finish_var = config_get(CONFIG_ENTRY_FINISH_V);
+
+      double mean_thres = config_get(CONFIG_ENTRY_MEAN_THRESHOLD);
+      double var_thres = config_get(CONFIG_ENTRY_VAR_THRESHOLD);
+
+      if((fabs(mean - start_mean)  < mean_thres && fabs(var - start_var)  < var_thres) ||
+         (fabs(mean - finish_mean) < mean_thres && fabs(var - finish_var) < var_thres)
+      ) {
         control_setState(CONTROL_STATE_STOP);
         break;
       }
@@ -124,14 +139,27 @@ void control_run(void) {
     }
 
     case CONTROL_STATE_CALIBRATE:
-      if(HAL_GetTick() - state_start > 5000) {
-        control_state_next = CONTROL_STATE_STOP;
+      if(state_counter >= 1000) {
+        //control_state_next = CONTROL_STATE_STOP;
+        //break;
+        puts(".");
+        if(compass_addCalPoint()) {
+          control_state_next = CONTROL_STATE_STOP;
+        } else {
+          control_state_next = CONTROL_STATE_CALIBRATE_MOVE;
+        }
+      }
+      break;
+
+    case CONTROL_STATE_CALIBRATE_MOVE:
+      if(state_counter >= 300) {
+        control_state_next = CONTROL_STATE_CALIBRATE;
       }
       break;
 
     case CONTROL_STATE_AIM:
     {
-      double input = fmod(aim_target - compass_getHeading() + M_PI, 2 * M_PI) - M_PI;
+      double input = fmod(control_target - compass_getHeading() + M_PI, 2 * M_PI) - M_PI;
       double u = pid_update(&pid, input, reset_pid);
       double speed = config_get(CONFIG_ENTRY_AIM_SP);
 
@@ -145,17 +173,19 @@ void control_run(void) {
 
       break;
     }
+
+    default:
+      break;
   }
 
+  state_counter++;
+
   if(debug) {
-    printf("%ld %.4lf %.4lf %ld %ld %.4lf %.4lf %.4lf %.4lf\n",
-      HAL_GetTick(),
+    printf("%ld %.4lf %.4f %.4lf %.4lf %.4lf\n",
+      state_counter,
       sensor_getResult(),
-      sensor_getAverage(),
-      motor_getCount(M1),
-      motor_getCount(M2),
-      motor_getSpeed(M1),
-      motor_getSpeed(M2),
+      sensor_getMean(),
+      sensor_getVariance(),
       compass_getHeading(),
       sensor_getVBatt()
     );
@@ -171,7 +201,7 @@ control_state_E control_getState(void) {
 }
 
 void control_aim(double heading) {
-  aim_target = heading;
+  control_target = heading;
   control_setState(CONTROL_STATE_AIM);
 }
 
