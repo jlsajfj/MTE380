@@ -15,8 +15,7 @@
 #define COMPASS_ADDR 0x3C
 #define CAL_POINTS 8
 
-static compass_state_E compass_state;
-static compass_state_E compass_state_next;
+static compass_state_E compass_state = COMPASS_STATE_INIT;
 
 static uint8_t i2c_buff[6];
 static bool buff_ready;
@@ -32,9 +31,6 @@ static void compass_read(void);
 static void compass_computeCal(void);
 
 void compass_init(void) {
-  compass_state = COMPASS_STATE_INIT;
-  compass_state_next = COMPASS_STATE_IDLE;
-
   uint8_t config[] = {
     0x78, // 8 sample average, 75Hz data rate, no bias
     0x20, // 0.92 Mg/LSB
@@ -48,34 +44,11 @@ void compass_init(void) {
 
   buff_ready = false;
   HAL_I2C_Mem_Read_IT(&hi2c1, COMPASS_ADDR, 0x3, I2C_MEMADD_SIZE_8BIT, i2c_buff, sizeof(i2c_buff));
+
+  compass_setState(COMPASS_STATE_IDLE);
 }
 
 void compass_run(void) {
-  if(compass_state_next != compass_state) {
-    switch(compass_state) {
-      case COMPASS_STATE_CALIBRATE:
-        alpha = 0.0;
-        compass_computeCal();
-        break;
-
-      default:
-        break;
-    }
-
-    compass_state = compass_state_next;
-
-    switch(compass_state) {
-      case COMPASS_STATE_CALIBRATE:
-        puts("starting calibration");
-        alpha = 0.8;
-        cal_count = 0;
-        break;
-
-      default:
-        break;
-    }
-  }
-
   switch(compass_state) {
     case COMPASS_STATE_RUN:
     {
@@ -127,7 +100,30 @@ void compass_run(void) {
 }
 
 void compass_setState(compass_state_E state) {
-  compass_state_next = state;
+  if(state != compass_state) {
+    switch(compass_state) {
+      case COMPASS_STATE_CALIBRATE:
+        alpha = 0.0;
+        compass_computeCal();
+        break;
+
+      default:
+        break;
+    }
+
+    compass_state = state;
+
+    switch(compass_state) {
+      case COMPASS_STATE_CALIBRATE:
+        puts("starting calibration");
+        alpha = 0.8;
+        cal_count = 0;
+        break;
+
+      default:
+        break;
+    }
+  }
 }
 
 bool compass_addCalPoint(void) {

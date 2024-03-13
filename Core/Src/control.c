@@ -13,8 +13,8 @@
 #include <stdbool.h>
 #include <math.h>
 
-static control_state_E control_state;
-static control_state_E control_state_next;
+static control_state_E control_state = CONTROL_STATE_INIT;
+static bool control_reset;
 
 static pid_config_S pid_conf_sensor = {
   .kp = CONFIG_ENTRY_CTRL_KP,
@@ -30,145 +30,111 @@ static pid_config_S pid_conf_aim = {
   .ki = CONFIG_ENTRY_AIM_KI,
   .kd = CONFIG_ENTRY_AIM_KD,
 
-  .output_max =  3.0,
-  .output_min = -3.0,
+  .output_max =  2.0,
+  .output_min = -2.0,
 };
 
-static pid_data_S pid;
-static uint32_t state_counter;
+static pid_config_S pid_conf_count = {
+  .kp = CONFIG_ENTRY_COUNT_KP,
+  .ki = CONFIG_ENTRY_COUNT_KI,
+  .kd = CONFIG_ENTRY_COUNT_KD,
+
+  .output_max =  2.0,
+  .output_min = -2.0,
+};
+
+static pid_data_S pid, pid2;
 static double control_target;
 static bool debug;
 
 void control_init(void) {
-  control_state = CONTROL_STATE_INIT;
-  control_state_next = CONTROL_STATE_STOP;
+  control_reset = true;
   debug = false;
   pid_init(&pid);
+  pid_init(&pid2);
+  control_setState(CONTROL_STATE_NEUTRAL);
 }
 
 void control_run(void) {
-  bool reset_pid = false;
-
-  // state transition
-  if(control_state_next != control_state) {
-    // state end action
-    switch(control_state) {
-      case CONTROL_STATE_CALIBRATE_MOVE:
-        motor_setSpeed(M1, 0);
-        motor_setSpeed(M2, 0);
-        break;
-
-      default:
-        break;
-    }
-
-    control_state = control_state_next;
-
-    // state start action
-    switch(control_state) {
-      case CONTROL_STATE_RUN:
-        pid.config = pid_conf_sensor;
-        reset_pid = true;
-
-      case CONTROL_STATE_STOP:
-        compass_setState(COMPASS_STATE_RUN);
-        motor_stop(M1);
-        motor_stop(M2);
-        break;
-
-      case CONTROL_STATE_CALIBRATE:
-        compass_setState(COMPASS_STATE_CALIBRATE);
-        break;
-
-      case CONTROL_STATE_CALIBRATE_MOVE:
-        motor_setSpeed(M1,  1);
-        motor_setSpeed(M2, -1);
-        break;
-
-      case CONTROL_STATE_AIM:
-        compass_setState(COMPASS_STATE_RUN);
-        pid.config = pid_conf_aim;
-        reset_pid = true;
-        break;
-
-      default:
-        break;
-    }
-
-    state_counter = 0;
-  }
-
   switch(control_state) {
-    case CONTROL_STATE_STOP:
+    case CONTROL_STATE_NEUTRAL:
       break;
 
-    case CONTROL_STATE_RUN:
+    case CONTROL_STATE_SPEED:
+      motor_setSpeed(M1, control_target);
+      motor_setSpeed(M2, control_target);
+      break;
+
+    case CONTROL_STATE_FOLLOW:
     {
-      double mean = sensor_getMean();
-      double var = sensor_getVariance();
-
-      double start_mean = config_get(CONFIG_ENTRY_START_M);
-      double start_var = config_get(CONFIG_ENTRY_START_V);
-      double finish_mean = config_get(CONFIG_ENTRY_FINISH_M);
-      double finish_var = config_get(CONFIG_ENTRY_FINISH_V);
-
-      double mean_thres = config_get(CONFIG_ENTRY_MEAN_THRESHOLD);
-      double var_thres = config_get(CONFIG_ENTRY_VAR_THRESHOLD);
-
-      if((fabs(mean - start_mean)  < mean_thres && fabs(var - start_var)  < var_thres) ||
-         (fabs(mean - finish_mean) < mean_thres && fabs(var - finish_var) < var_thres)
-      ) {
-        control_setState(CONTROL_STATE_STOP);
-        break;
-      }
-
       double input = sensor_getResult();
-      double u = pid_update(&pid, input, reset_pid);
-
-      double speed = config_get(CONFIG_ENTRY_MOTOR_SPEED);
+      double u = pid_update(&pid, input, control_reset);
 
       if(u > 0) {
-        motor_setSpeed(M1, speed - u / 2);
-        motor_setSpeed(M2, speed + u / 2);
+        motor_setSpeed(M1, control_target - u / 2);
+        motor_setSpeed(M2, control_target + u / 2);
       } else {
-        motor_setSpeed(M1, speed - u / 2);
-        motor_setSpeed(M2, speed + u / 2);
+        motor_setSpeed(M1, control_target - u / 2);
+        motor_setSpeed(M2, control_target + u / 2);
       }
 
       break;
     }
 
-    case CONTROL_STATE_CALIBRATE:
-      if(state_counter >= 1000) {
-        //control_state_next = CONTROL_STATE_STOP;
-        //break;
-        puts(".");
-        if(compass_addCalPoint()) {
-          control_state_next = CONTROL_STATE_STOP;
-        } else {
-          control_state_next = CONTROL_STATE_CALIBRATE_MOVE;
-        }
-      }
-      break;
-
-    case CONTROL_STATE_CALIBRATE_MOVE:
-      if(state_counter >= 300) {
-        control_state_next = CONTROL_STATE_CALIBRATE;
-      }
-      break;
-
-    case CONTROL_STATE_AIM:
+    case CONTROL_STATE_HEADING:
     {
       double input = fmod(control_target - compass_getHeading() + M_PI, 2 * M_PI) - M_PI;
-      double u = pid_update(&pid, input, reset_pid);
-      double speed = config_get(CONFIG_ENTRY_AIM_SP);
+      double u = pid_update(&pid, input, control_reset);
 
       if(u > 0) {
-        motor_setSpeed(M1, speed - u / 2);
-        motor_setSpeed(M2, speed + u / 2);
+        motor_setSpeed(M1, -u / 2);
+        motor_setSpeed(M2,  u / 2);
       } else {
-        motor_setSpeed(M1, speed - u / 2);
-        motor_setSpeed(M2, speed + u / 2);
+        motor_setSpeed(M1, -u / 2);
+        motor_setSpeed(M2,  u / 2);
+      }
+
+      if(pid.stable) {
+        control_setState(CONTROL_STATE_NEUTRAL);
+      }
+
+      break;
+    }
+
+    case CONTROL_STATE_MOVE:
+    {
+      double target = MOTOR_MM_TO_COUNT(control_target);
+      double error1 = target - motor_getCount(M1);
+      double error2 = target - motor_getCount(M2);
+
+      double u1 = pid_update(&pid, error1, control_reset);
+      double u2 = pid_update(&pid2, error2, control_reset);
+
+      motor_setSpeed(M1, u1);
+      motor_setSpeed(M2, u2);
+
+      if(pid.stable && pid2.stable) {
+        control_setState(CONTROL_STATE_NEUTRAL);
+      }
+
+      break;
+    }
+
+    case CONTROL_STATE_TURN:
+    {
+      double radius = config_get(CONFIG_ENTRY_WHEEL_DIST) / 2;
+      double target = MOTOR_MM_TO_COUNT(radius * control_target / 180.0 * M_PI);
+      double error1 = -target - motor_getCount(M1);
+      double error2 =  target - motor_getCount(M2);
+
+      double u1 = pid_update(&pid, error1, control_reset);
+      double u2 = pid_update(&pid2, error2, control_reset);
+
+      motor_setSpeed(M1, u1);
+      motor_setSpeed(M2, u2);
+
+      if(pid.stable && pid2.stable) {
+        control_setState(CONTROL_STATE_NEUTRAL);
       }
 
       break;
@@ -178,11 +144,11 @@ void control_run(void) {
       break;
   }
 
-  state_counter++;
+  control_reset = false;
 
   if(debug) {
     printf("%ld %.4lf %.4f %.4lf %.4lf %.4lf\n",
-      state_counter,
+      HAL_GetTick(),
       sensor_getResult(),
       sensor_getMean(),
       sensor_getVariance(),
@@ -192,17 +158,65 @@ void control_run(void) {
   }
 }
 
+void control_setTarget(double target) {
+  control_target = target;
+}
+
 void control_setState(control_state_E state) {
-  control_state_next = state;
+  // state transition
+  if(state != control_state) {
+    // state end action
+    switch(control_state) {
+      case CONTROL_STATE_HEADING:
+        compass_setState(COMPASS_STATE_IDLE);
+        break;
+
+      default:
+        break;
+    }
+
+    control_state = state;
+
+    // state start action
+    switch(control_state) {
+      case CONTROL_STATE_NEUTRAL:
+        motor_stop(M1);
+        motor_stop(M2);
+        break;
+
+      case CONTROL_STATE_BRAKE:
+        motor_setSpeed(M1, 0);
+        motor_setSpeed(M2, 0);
+        break;
+
+      case CONTROL_STATE_FOLLOW:
+        pid.config = pid_conf_sensor;
+        control_reset = true;
+        break;
+
+      case CONTROL_STATE_HEADING:
+        compass_setState(COMPASS_STATE_RUN);
+        pid.config = pid_conf_aim;
+        control_reset = true;
+        break;
+
+      case CONTROL_STATE_MOVE:
+      case CONTROL_STATE_TURN:
+        motor_resetCount(M1);
+        motor_resetCount(M2);
+        pid.config = pid_conf_count;
+        pid2.config = pid_conf_count;
+        control_reset = true;
+        break;
+
+      default:
+        break;
+    }
+  }
 }
 
 control_state_E control_getState(void) {
   return control_state;
-}
-
-void control_aim(double heading) {
-  control_target = heading;
-  control_setState(CONTROL_STATE_AIM);
 }
 
 void control_debug(int8_t d) {

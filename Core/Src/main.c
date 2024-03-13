@@ -36,6 +36,7 @@
 #include "compass.h"
 #include "helper.h"
 #include "config.h"
+#include "state.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -115,6 +116,7 @@ int main(void)
   sensor_init();
   compass_init();
   command_init();
+  sm_init();
   control_init();
   servo_init();
   motor_init();
@@ -137,6 +139,7 @@ int main(void)
     sensor_run();
     compass_run();
     command_run();
+    sm_run();
     control_run();
     servo_run();
     motor_run();

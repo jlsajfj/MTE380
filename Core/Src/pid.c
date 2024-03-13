@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <math.h>
 
+#define EPSILON 0.001
+
 void pid_init(pid_data_S *data) {
    data->error_accu = 0;
    data->error_last = 0;
@@ -17,12 +19,13 @@ double pid_update(pid_data_S *data, double error, bool reset) {
 
    double diff;
    if(reset) {
-      data->error_last = error;
-      //data->error_accu = (data->output - kp * error) / ki;
-      data->error_accu = 0.0;
       diff = 0.0;
+      data->error_last = error;
+      data->error_accu = 0.0;
+      data->stable = false;
    } else {
       diff = error - data->error_last;
+      data->stable = fabs(diff) < EPSILON && fabs(error) < EPSILON;
    }
 
    data->error_last = error;

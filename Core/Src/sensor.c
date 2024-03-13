@@ -76,7 +76,10 @@ void sensor_run(void) {
             sum += normalized;
             ssum += normalized * normalized;
             result += SATURATE(normalized, 0, 1) * gain / total_gain;
+
+            //printf("%11.4f", normalized);
           }
+          //puts("");
 
           sensor_result = result;
           sensor_mean = sum / PD_COUNT;

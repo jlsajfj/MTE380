@@ -30,7 +30,7 @@ static servo_data_S servo_datas[SERVO_COUNT];
 
 void servo_init(void) {
   for(servo_E servo_id = S1; servo_id < SERVO_COUNT; servo_id++) {
-    servo_definition_S *servo = &servos[servo_id];
+    const servo_definition_S *servo = &servos[servo_id];
     servo_data_S *data = &servo_datas[servo_id];
     data->pwm = SERVO_PWM_MIN;
     data->start = HAL_GetTick() - SERVO_RUN_TIME;
@@ -42,7 +42,7 @@ void servo_init(void) {
 void servo_run(void) {
   uint32_t tick = HAL_GetTick();
   for(servo_E servo_id = S1; servo_id < SERVO_COUNT; servo_id++) {
-    servo_definition_S *servo = &servos[servo_id];
+    const servo_definition_S *servo = &servos[servo_id];
     servo_data_S *data = &servo_datas[servo_id];
 
     // only power servo for a certain period of time

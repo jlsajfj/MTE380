@@ -19,6 +19,7 @@ typedef struct {
    double error_accu;
    double error_last;
    double output;
+   bool stable;
 } pid_data_S;
 
 void pid_init(pid_data_S *data);

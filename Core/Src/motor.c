@@ -147,6 +147,13 @@ void motor_stop(motor_E motor_id) {
   data->mode = MOTOR_MODE_STOP;
 }
 
+void motor_resetCount(motor_E motor_id) {
+    const motor_definition_S *motor = &motors[motor_id];
+    motor_data_S *data = &motor_datas[motor_id];
+    *motor->enc_reg = 0;
+    data->count = 0;
+}
+
 int32_t motor_getCount(motor_E motor_id) {
   return motor_datas[motor_id].count;
 }

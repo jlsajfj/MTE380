@@ -2,6 +2,7 @@
 #define __COMPASS_H__
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef enum {
   COMPASS_STATE_INIT,
