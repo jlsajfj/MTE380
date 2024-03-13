@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define EPSILON 0.001
+#define EPSILON 0.01
 
 void pid_init(pid_data_S *data) {
    data->error_accu = 0;

@@ -83,7 +83,7 @@ void control_run(void) {
 
     case CONTROL_STATE_HEADING:
     {
-      double input = fmod(control_target - compass_getHeading() + M_PI, 2 * M_PI) - M_PI;
+      double input = fmod(control_target / 180.0 * M_PI - compass_getHeading() + M_PI, 2 * M_PI) - M_PI;
       double u = pid_update(&pid, input, control_reset);
 
       if(u > 0) {

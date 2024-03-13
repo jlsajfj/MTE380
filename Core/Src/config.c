@@ -58,6 +58,9 @@ static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
   [CONFIG_ENTRY_AIM_KI]         = { "ai",             0.0  },
   [CONFIG_ENTRY_AIM_KD]         = { "ad",             0.0  },
   [CONFIG_ENTRY_WHEEL_DIST]     = { "wheel_dist",   123.0  },
+  [CONFIG_ENTRY_TURNBACK]       = { "turnback",    -135.0  },
+  [CONFIG_ENTRY_BACKUP]         = { "backup",       -50.0  },
+  [CONFIG_ENTRY_AIM_TARGET]     = { "target",       -45.0  },
 };
 
 static union {

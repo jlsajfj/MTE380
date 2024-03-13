@@ -54,6 +54,8 @@ void command_run(void) {
     }
     servo_setPosition(S1, position);
     locked ^= 1;
+
+    sm_setState(SM_STATE_STANDBY);
   }
 
 #define MATCH_CMD(x) (strlen(x) == rx_len && strncmp((x), (const char*) rx_buff, rx_len) == 0)
@@ -61,16 +63,7 @@ void command_run(void) {
 
   if(rx_pend) {
     if(MATCH_CMD("start")) {
-      control_setState(CONTROL_STATE_FOLLOW);
-
-    } else if(MATCH_CMD_N("aim ")) {
-      uint16_t heading_start = 3; while(isspace(rx_buff[heading_start]) && heading_start < rx_len) heading_start++;
-
-      double heading = 0.0f;
-      if(sscanf((const char*) (rx_buff + heading_start), "%lf", &heading) == 1) {
-        control_setTarget(heading / 180 * M_PI);
-        control_setState(CONTROL_STATE_HEADING);
-      }
+      sm_setState(SM_STATE_UNHOOK);
 
     } else if(MATCH_CMD("stop")) {
       sm_setState(SM_STATE_STANDBY);
@@ -81,20 +74,14 @@ void command_run(void) {
     } else if(MATCH_CMD("calibrate")) {
       sm_setState(SM_STATE_CALIBRATE);
 
-    } else if(MATCH_CMD_N("debug ")) {
-      uint16_t arg_start = 5; while(isspace(rx_buff[arg_start]) && arg_start < rx_len) arg_start++;
+    } else if(MATCH_CMD_N("aim ")) {
+      uint16_t heading_start = 3; while(isspace(rx_buff[heading_start]) && heading_start < rx_len) heading_start++;
 
-      if(strcmp("on", rx_buff + arg_start) == 0) {
-        control_debug(1);
-      } else if(strcmp("off", rx_buff + arg_start) == 0) {
-        control_debug(0);
-      } else {
-        control_debug(-1);
+      double heading = 0.0f;
+      if(sscanf((const char*) (rx_buff + heading_start), "%lf", &heading) == 1) {
+        control_setTarget(heading / 180 * M_PI);
+        control_setState(CONTROL_STATE_HEADING);
       }
-
-    } else if(MATCH_CMD("batt")) {
-      double vbatt = sensor_getVBatt();
-      printf("batt: %10.2lf\n", vbatt);
 
     } else if(MATCH_CMD_N("speed ")) {
       uint16_t speed_start = 5; while(isspace(rx_buff[speed_start]) && speed_start < rx_len) speed_start++;
@@ -131,17 +118,6 @@ void command_run(void) {
         control_setState(CONTROL_STATE_NEUTRAL);
         motor_setPWM(M1, pwm);
         motor_setPWM(M2, pwm);
-      }
-
-    } else if(MATCH_CMD_N("echo ")) {
-      uint16_t arg_start = 4; while(isspace(rx_buff[arg_start]) && arg_start < rx_len) arg_start++;
-
-      if(strcmp("on", rx_buff + arg_start) == 0) {
-        echo = true;
-      } else if(strcmp("off", rx_buff + arg_start) == 0) {
-        echo = false;
-      } else {
-        echo ^= 1;
       }
 
     } else if(MATCH_CMD_N("kick ")) {
@@ -233,6 +209,33 @@ void command_run(void) {
         double value = config_getByName(rx_buff + name_start);
         printf("%16s = %lf\n", rx_buff + name_start, value);
       }
+
+    } else if(MATCH_CMD_N("echo ")) {
+      uint16_t arg_start = 4; while(isspace(rx_buff[arg_start]) && arg_start < rx_len) arg_start++;
+
+      if(strcmp("on", rx_buff + arg_start) == 0) {
+        echo = true;
+      } else if(strcmp("off", rx_buff + arg_start) == 0) {
+        echo = false;
+      } else {
+        echo ^= 1;
+      }
+
+    } else if(MATCH_CMD_N("debug ")) {
+      uint16_t arg_start = 5; while(isspace(rx_buff[arg_start]) && arg_start < rx_len) arg_start++;
+
+      if(strcmp("on", rx_buff + arg_start) == 0) {
+        control_debug(1);
+      } else if(strcmp("off", rx_buff + arg_start) == 0) {
+        control_debug(0);
+      } else {
+        control_debug(-1);
+      }
+
+    } else if(MATCH_CMD("batt")) {
+      double vbatt = sensor_getVBatt();
+      printf("batt: %10.2lf\n", vbatt);
+
     } else {
       puts("unknown command");
     }

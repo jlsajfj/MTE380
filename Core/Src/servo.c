@@ -6,8 +6,8 @@
 
 #include "stm32f4xx_hal.h"
 
-#define SERVO_PWM_MIN 26214
-#define SERVO_PWM_MAX 107479
+#define SERVO_PULSE_MIN 26214
+#define SERVO_PULSE_MAX 107479
 #define SERVO_RUN_TIME 1000
 
 typedef struct {
@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct {
   uint32_t start;
-  uint32_t pwm;
+  uint32_t pulse;
 } servo_data_S;
 
 static servo_definition_S servos[SERVO_COUNT] = {
@@ -32,9 +32,9 @@ void servo_init(void) {
   for(servo_E servo_id = S1; servo_id < SERVO_COUNT; servo_id++) {
     const servo_definition_S *servo = &servos[servo_id];
     servo_data_S *data = &servo_datas[servo_id];
-    data->pwm = SERVO_PWM_MIN;
+    data->pulse = SERVO_PULSE_MIN;
     data->start = HAL_GetTick() - SERVO_RUN_TIME;
-    *servo->pwm_reg = SERVO_PWM_MIN;
+    *servo->pwm_reg = SERVO_PULSE_MIN;
     HAL_TIM_PWM_Start(servo->pwm_timer, servo->pwm_timer_channel);
   }
 }
@@ -49,13 +49,13 @@ void servo_run(void) {
     if(tick - data->start >= SERVO_RUN_TIME) {
       *servo->pwm_reg = 0;
     } else {
-      *servo->pwm_reg = data->pwm;
+      *servo->pwm_reg = data->pulse;
     }
   }
 }
 
 void servo_setPosition(servo_E servo_id, double angle) {
   servo_data_S *data = &servo_datas[servo_id];
-  data->pwm = (uint32_t) MAP(SATURATE(angle, 0, 1), SERVO_PWM_MIN, SERVO_PWM_MAX);
+  data->pulse = (uint32_t) MAP(SATURATE(angle, 0, 1), SERVO_PULSE_MIN, SERVO_PULSE_MAX);
   data->start = HAL_GetTick();
 }
