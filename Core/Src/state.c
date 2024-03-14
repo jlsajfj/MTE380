@@ -4,6 +4,7 @@
 #include "compass.h"
 #include "sensor.h"
 #include "servo.h"
+#include "motor.h"
 
 #include <stdint.h>
 
@@ -12,16 +13,25 @@ static uint32_t sm_state_time;
 
 static bool cal_finished;
 
+typedef struct {
+  int32_t count;
+  double speed;
+} speed_point_S;
+
+static const speed_point_S speed_points[] = {
+  {0,  10.0},
+  {120, 4.0},
+  {180,10.0},
+  {270, 4.0},
+  {630, 2.0},
+};
+
 void sm_init(void) {
   sm_setState(SM_STATE_STANDBY);
 }
 
 void sm_run(void) {
   const control_state_E control_state = control_getState();
-
-  if(control_state == CONTROL_STATE_FOLLOW) {
-    control_setTarget(config_get(CONFIG_ENTRY_MOTOR_SPEED));
-  }
 
   switch(sm_state) {
     case SM_STATE_UNHOOK:
@@ -33,14 +43,44 @@ void sm_run(void) {
     case SM_STATE_GOTO_TARGET:
     {
       double mean = sensor_getMean();
-      if(mean > config_get(CONFIG_ENTRY_FINISH_M)) {
-        sm_setState(SM_STATE_AIM);
+      double var  = sensor_getVariance();
+      double mean_th = config_get(CONFIG_ENTRY_TARGET_MEAN);
+      double var_th  = config_get(CONFIG_ENTRY_TARGET_VAR);
+      if(mean < mean_th && var < var_th) {
+        sm_setState(SM_STATE_TARGET_BRAKE);
       }
+
+      int32_t count = (motor_getCount(M1) + motor_getCount(M2)) / 2;
+      double speed = speed_points[0].speed;
+      for(int i = 0; i < sizeof(speed_points) / sizeof(speed_points[0]); i++) {
+        if(count >= speed_points[i].count) {
+          speed = speed_points[i].speed;
+          break;
+        }
+      }
+
+      control_setTarget(speed * config_get(CONFIG_ENTRY_MOTOR_SPEED));
+
       break;
     }
 
+    case SM_STATE_TARGET_BRAKE:
+      if(sm_state_time > 50) {
+        control_setState(CONTROL_STATE_BRAKE);
+      }
+      if(control_state == CONTROL_STATE_NEUTRAL) {
+        sm_setState(SM_STATE_AIM);
+      }
+      break;
+
     case SM_STATE_AIM:
-      control_setTarget(config_get(CONFIG_ENTRY_AIM_TARGET));
+      //control_setTarget(config_get(CONFIG_ENTRY_AIM_TARGET));
+      if(control_state == CONTROL_STATE_NEUTRAL || sm_state_time > 5000) {
+        sm_setState(SM_STATE_PUSH);
+      }
+      break;
+
+    case SM_STATE_PUSH:
       if(control_state == CONTROL_STATE_NEUTRAL) {
         sm_setState(SM_STATE_TURN_BACK);
       }
@@ -55,11 +95,26 @@ void sm_run(void) {
     case SM_STATE_GOTO_HOME:
     {
       double mean = sensor_getMean();
-      if(mean < config_get(CONFIG_ENTRY_START_M)) {
+      double var  = sensor_getVariance();
+      double mean_th = config_get(CONFIG_ENTRY_HOME_MEAN);
+      double var_th  = config_get(CONFIG_ENTRY_HOME_VAR);
+      if(mean < mean_th && var < var_th) {
+        sm_setState(SM_STATE_HOME_BRAKE);
+      }
+
+      control_setTarget(10 * config_get(CONFIG_ENTRY_MOTOR_SPEED));
+
+      break;
+    }
+
+    case SM_STATE_HOME_BRAKE:
+      if(sm_state_time > 50) {
+        control_setState(CONTROL_STATE_BRAKE);
+      }
+      if(control_state == CONTROL_STATE_NEUTRAL) {
         sm_setState(SM_STATE_TURN_FORWARD);
       }
       break;
-    }
 
     case SM_STATE_TURN_FORWARD:
       if(control_state == CONTROL_STATE_NEUTRAL) {
@@ -100,7 +155,7 @@ void sm_setState(sm_state_E state) {
   if(state != sm_state) {
     // state end action
     switch(sm_state) {
-      case SM_STATE_AIM:
+      case SM_STATE_PUSH:
         servo_setPosition(S1, config_get(CONFIG_ENTRY_SERVO_UNLOCK));
         break;
 
@@ -134,11 +189,27 @@ void sm_setState(sm_state_E state) {
 
       case SM_STATE_GOTO_TARGET:
       case SM_STATE_GOTO_HOME:
+        motor_resetCount(M1);
+        motor_resetCount(M2);
         control_setState(CONTROL_STATE_FOLLOW);
         break;
 
+      case SM_STATE_TARGET_BRAKE:
+      case SM_STATE_HOME_BRAKE:
+        servo_setPosition(S2, 1);
+        control_setTarget(-10);
+        control_setState(CONTROL_STATE_SPEED);
+        break;
+
       case SM_STATE_AIM:
-        control_setState(CONTROL_STATE_HEADING);
+        //control_setState(CONTROL_STATE_HEADING);
+        control_setTarget(-45);
+        control_setState(CONTROL_STATE_TURN);
+        break;
+
+      case SM_STATE_PUSH:
+        control_setTarget(config_get(CONFIG_ENTRY_PUSH));
+        control_setState(CONTROL_STATE_MOVE);
         break;
 
       case SM_STATE_TURN_BACK:

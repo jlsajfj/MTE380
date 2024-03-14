@@ -12,6 +12,8 @@ typedef struct {
 
    double output_max;
    double output_min;
+
+   double stable_margin;
 } pid_config_S;
 
 typedef struct {

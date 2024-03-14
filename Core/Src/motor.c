@@ -73,6 +73,8 @@ static pid_config_S motor_pid_config = {
 
    .output_max =  1.0,
    .output_min = -1.0,
+
+   .stable_margin = 0.01,
 };
 
 static motor_data_S motor_datas[MOTOR_COUNT];
@@ -166,6 +168,11 @@ void motor_setPWM(motor_E motor_id, double pwm) {
   motor_data_S *data = &motor_datas[motor_id];
   data->mode = MOTOR_MODE_PWM;
   motor_setPWM_private(motor_id, pwm);
+}
+
+bool motor_isStable(motor_E motor_id) {
+  motor_data_S *data = &motor_datas[motor_id];
+  return data->pid.stable;
 }
 
 static void motor_setPWM_private(motor_E motor_id, double pwm) {

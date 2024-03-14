@@ -23,6 +23,8 @@ static pid_config_S pid_conf_sensor = {
 
   .output_max =  10.0,
   .output_min = -10.0,
+
+  .stable_margin = 0,
 };
 
 static pid_config_S pid_conf_aim = {
@@ -30,8 +32,10 @@ static pid_config_S pid_conf_aim = {
   .ki = CONFIG_ENTRY_AIM_KI,
   .kd = CONFIG_ENTRY_AIM_KD,
 
-  .output_max =  2.0,
-  .output_min = -2.0,
+  .output_max =  1.0,
+  .output_min = -1.0,
+
+  .stable_margin = 0.1,
 };
 
 static pid_config_S pid_conf_count = {
@@ -39,8 +43,10 @@ static pid_config_S pid_conf_count = {
   .ki = CONFIG_ENTRY_COUNT_KI,
   .kd = CONFIG_ENTRY_COUNT_KD,
 
-  .output_max =  2.0,
-  .output_min = -2.0,
+  .output_max =  4.0,
+  .output_min = -4.0,
+
+  .stable_margin = 0.01,
 };
 
 static pid_data_S pid, pid2;
@@ -63,6 +69,12 @@ void control_run(void) {
     case CONTROL_STATE_SPEED:
       motor_setSpeed(M1, control_target);
       motor_setSpeed(M2, control_target);
+      break;
+
+    case CONTROL_STATE_BRAKE:
+      if(motor_isStable(M1) && motor_isStable(M2)) {
+        control_setState(CONTROL_STATE_NEUTRAL);
+      }
       break;
 
     case CONTROL_STATE_FOLLOW:
@@ -147,9 +159,8 @@ void control_run(void) {
   control_reset = false;
 
   if(debug) {
-    printf("%ld %.4lf %.4f %.4lf %.4lf %.4lf\n",
+    printf("%ld %.4lf %.4f %.4lf %.4lf\n",
       HAL_GetTick(),
-      sensor_getResult(),
       sensor_getMean(),
       sensor_getVariance(),
       compass_getHeading(),
