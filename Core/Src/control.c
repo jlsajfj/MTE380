@@ -43,8 +43,8 @@ static pid_config_S pid_conf_count = {
   .ki = CONFIG_ENTRY_COUNT_KI,
   .kd = CONFIG_ENTRY_COUNT_KD,
 
-  .output_max =  4.0,
-  .output_min = -4.0,
+  .output_max =  1.0,
+  .output_min = -1.0,
 
   .stable_margin = 0.01,
 };

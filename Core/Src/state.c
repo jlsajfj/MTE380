@@ -5,6 +5,7 @@
 #include "sensor.h"
 #include "servo.h"
 #include "motor.h"
+#include "helper.h"
 
 #include <stdint.h>
 
@@ -19,11 +20,13 @@ typedef struct {
 } speed_point_S;
 
 static const speed_point_S speed_points[] = {
-  {0,  10.0},
-  {120, 4.0},
-  {180,10.0},
-  {270, 4.0},
-  {630, 2.0},
+  {MOTOR_MM_TO_COUNT(0) ,   2.0},
+  {MOTOR_MM_TO_COUNT(1200), 1.0},
+  {MOTOR_MM_TO_COUNT(1600), 2.0},
+  {MOTOR_MM_TO_COUNT(2600), 1.0},
+  {MOTOR_MM_TO_COUNT(4100), 2.0},
+  {MOTOR_MM_TO_COUNT(4400), 1.0},
+  {MOTOR_MM_TO_COUNT(5800), 0.5},
 };
 
 void sm_init(void) {
@@ -46,15 +49,17 @@ void sm_run(void) {
       double var  = sensor_getVariance();
       double mean_th = config_get(CONFIG_ENTRY_TARGET_MEAN);
       double var_th  = config_get(CONFIG_ENTRY_TARGET_VAR);
+
       if(mean < mean_th && var < var_th) {
         sm_setState(SM_STATE_TARGET_BRAKE);
       }
 
+      uint32_t num_points = sizeof(speed_points) / sizeof(speed_points[0]);
       int32_t count = (motor_getCount(M1) + motor_getCount(M2)) / 2;
-      double speed = speed_points[0].speed;
-      for(int i = 0; i < sizeof(speed_points) / sizeof(speed_points[0]); i++) {
-        if(count >= speed_points[i].count) {
-          speed = speed_points[i].speed;
+      double speed = speed_points[num_points-1].speed;
+      for(int i = 0; i < num_points; i++) {
+        if(count < speed_points[i].count) {
+          speed = speed_points[MAX(i-1, 0)].speed;
           break;
         }
       }
@@ -69,6 +74,12 @@ void sm_run(void) {
         control_setState(CONTROL_STATE_BRAKE);
       }
       if(control_state == CONTROL_STATE_NEUTRAL) {
+        sm_setState(SM_STATE_PUSH_1);
+      }
+      break;
+
+    case SM_STATE_PUSH_1:
+      if(control_state == CONTROL_STATE_NEUTRAL) {
         sm_setState(SM_STATE_AIM);
       }
       break;
@@ -76,11 +87,11 @@ void sm_run(void) {
     case SM_STATE_AIM:
       //control_setTarget(config_get(CONFIG_ENTRY_AIM_TARGET));
       if(control_state == CONTROL_STATE_NEUTRAL || sm_state_time > 5000) {
-        sm_setState(SM_STATE_PUSH);
+        sm_setState(SM_STATE_PUSH_2);
       }
       break;
 
-    case SM_STATE_PUSH:
+    case SM_STATE_PUSH_2:
       if(control_state == CONTROL_STATE_NEUTRAL) {
         sm_setState(SM_STATE_TURN_BACK);
       }
@@ -102,7 +113,7 @@ void sm_run(void) {
         sm_setState(SM_STATE_HOME_BRAKE);
       }
 
-      control_setTarget(10 * config_get(CONFIG_ENTRY_MOTOR_SPEED));
+      control_setTarget(config_get(CONFIG_ENTRY_MOTOR_SPEED));
 
       break;
     }
@@ -155,7 +166,7 @@ void sm_setState(sm_state_E state) {
   if(state != sm_state) {
     // state end action
     switch(sm_state) {
-      case SM_STATE_PUSH:
+      case SM_STATE_PUSH_2:
         servo_setPosition(S1, config_get(CONFIG_ENTRY_SERVO_UNLOCK));
         break;
 
@@ -196,7 +207,6 @@ void sm_setState(sm_state_E state) {
 
       case SM_STATE_TARGET_BRAKE:
       case SM_STATE_HOME_BRAKE:
-        servo_setPosition(S2, 1);
         control_setTarget(-10);
         control_setState(CONTROL_STATE_SPEED);
         break;
@@ -207,7 +217,8 @@ void sm_setState(sm_state_E state) {
         control_setState(CONTROL_STATE_TURN);
         break;
 
-      case SM_STATE_PUSH:
+      case SM_STATE_PUSH_1:
+      case SM_STATE_PUSH_2:
         control_setTarget(config_get(CONFIG_ENTRY_PUSH));
         control_setState(CONTROL_STATE_MOVE);
         break;
