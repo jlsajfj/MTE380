@@ -26,7 +26,7 @@ static const speed_point_S speed_points[] = {
   {MOTOR_MM_TO_COUNT(2600), 1.0},
   {MOTOR_MM_TO_COUNT(4100), 2.0},
   {MOTOR_MM_TO_COUNT(4400), 1.0},
-  {MOTOR_MM_TO_COUNT(5800), 0.5},
+  {MOTOR_MM_TO_COUNT(5800), 0.3},
 };
 
 void sm_init(void) {
@@ -93,6 +93,12 @@ void sm_run(void) {
 
     case SM_STATE_PUSH_2:
       if(control_state == CONTROL_STATE_NEUTRAL) {
+        sm_setState(SM_STATE_KICK);
+      }
+      break;
+
+    case SM_STATE_KICK:
+      if(sm_state_time > 500) {
         sm_setState(SM_STATE_TURN_BACK);
       }
       break;
@@ -166,10 +172,6 @@ void sm_setState(sm_state_E state) {
   if(state != sm_state) {
     // state end action
     switch(sm_state) {
-      case SM_STATE_PUSH_2:
-        servo_setPosition(S1, config_get(CONFIG_ENTRY_SERVO_UNLOCK));
-        break;
-
       case SM_STATE_BACKUP:
         servo_setPosition(S2, config_get(CONFIG_ENTRY_SERVO_LOCK));
         break;
@@ -218,9 +220,17 @@ void sm_setState(sm_state_E state) {
         break;
 
       case SM_STATE_PUSH_1:
-      case SM_STATE_PUSH_2:
-        control_setTarget(config_get(CONFIG_ENTRY_PUSH));
+        control_setTarget(config_get(CONFIG_ENTRY_PUSH_1));
         control_setState(CONTROL_STATE_MOVE);
+        break;
+
+      case SM_STATE_PUSH_2:
+        control_setTarget(config_get(CONFIG_ENTRY_PUSH_2));
+        control_setState(CONTROL_STATE_MOVE);
+        break;
+
+      case SM_STATE_KICK:
+        servo_setPosition(S1, config_get(CONFIG_ENTRY_SERVO_UNLOCK));
         break;
 
       case SM_STATE_TURN_BACK:

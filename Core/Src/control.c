@@ -46,7 +46,7 @@ static pid_config_S pid_conf_count = {
   .output_max =  1.0,
   .output_min = -1.0,
 
-  .stable_margin = 0.01,
+  .stable_margin = 0.05,
 };
 
 static pid_data_S pid, pid2;
@@ -115,6 +115,10 @@ void control_run(void) {
 
     case CONTROL_STATE_MOVE:
     {
+      double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
+      pid.config.output_max =  speed;
+      pid.config.output_min = -speed;
+
       double target = MOTOR_MM_TO_COUNT(control_target);
       double error1 = target - motor_getCount(M1);
       double error2 = target - motor_getCount(M2);
@@ -134,6 +138,10 @@ void control_run(void) {
 
     case CONTROL_STATE_TURN:
     {
+      double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
+      pid.config.output_max =  speed;
+      pid.config.output_min = -speed;
+
       double radius = config_get(CONFIG_ENTRY_WHEEL_DIST) / 2;
       double target = MOTOR_MM_TO_COUNT(radius * control_target / 180.0 * M_PI);
       double error1 = -target - motor_getCount(M1);

@@ -60,7 +60,9 @@ static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
   [CONFIG_ENTRY_WHEEL_DIST]     = { "wheel_dist",   123.0  },
   [CONFIG_ENTRY_TURNBACK]       = { "turnback",    -135.0  },
   [CONFIG_ENTRY_BACKUP]         = { "backup",       -50.0  },
-  [CONFIG_ENTRY_PUSH]           = { "push",          50.0  },
+  [CONFIG_ENTRY_PUSH_1]         = { "push1",        100.0  },
+  [CONFIG_ENTRY_PUSH_2]         = { "push2",         50.0  },
+  [CONFIG_ENTRY_PUSH_SPEED]     = { "push_speed",    50.0  },
   [CONFIG_ENTRY_AIM_TARGET]     = { "target",       -45.0  },
 };
 
