@@ -100,6 +100,10 @@ void command_run(void) {
       control_setTarget(darg);
       control_setState(CONTROL_STATE_TURN);
 
+    } else if(MATCH_CMD_D("arc")) {
+      control_setTarget(darg);
+      control_setState(CONTROL_STATE_ARC);
+
     } else if(MATCH_CMD_D("pwm")) {
       control_setState(CONTROL_STATE_NEUTRAL);
       motor_setPWM(M1, darg);

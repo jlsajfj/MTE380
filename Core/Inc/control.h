@@ -13,6 +13,7 @@ typedef enum {
   CONTROL_STATE_HEADING,
   CONTROL_STATE_MOVE,
   CONTROL_STATE_TURN,
+  CONTROL_STATE_ARC,
 } control_state_E;
 
 void control_init(void);

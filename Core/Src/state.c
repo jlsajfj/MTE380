@@ -24,9 +24,9 @@ static const speed_point_S speed_points[] = {
   {MOTOR_MM_TO_COUNT(1200), 1.0},
   {MOTOR_MM_TO_COUNT(1600), 2.0},
   {MOTOR_MM_TO_COUNT(2600), 1.0},
-  {MOTOR_MM_TO_COUNT(4100), 2.0},
-  {MOTOR_MM_TO_COUNT(4400), 1.0},
-  {MOTOR_MM_TO_COUNT(5800), 0.3},
+  {MOTOR_MM_TO_COUNT(4000), 2.0},
+  {MOTOR_MM_TO_COUNT(4300), 1.0},
+  {MOTOR_MM_TO_COUNT(5700), 0.3},
 };
 
 void sm_init(void) {
@@ -38,7 +38,7 @@ void sm_run(void) {
 
   switch(sm_state) {
     case SM_STATE_UNHOOK:
-      if(sm_state_time >= 500) {
+      if(sm_state_time >= 100) {
         sm_setState(SM_STATE_GOTO_TARGET);
       }
       break;
@@ -70,11 +70,8 @@ void sm_run(void) {
     }
 
     case SM_STATE_TARGET_BRAKE:
-      if(sm_state_time > 50) {
-        control_setState(CONTROL_STATE_BRAKE);
-      }
       if(control_state == CONTROL_STATE_NEUTRAL) {
-        sm_setState(SM_STATE_PUSH_1);
+        sm_setState(SM_STATE_AIM);
       }
       break;
 
@@ -85,9 +82,8 @@ void sm_run(void) {
       break;
 
     case SM_STATE_AIM:
-      //control_setTarget(config_get(CONFIG_ENTRY_AIM_TARGET));
       if(control_state == CONTROL_STATE_NEUTRAL || sm_state_time > 5000) {
-        sm_setState(SM_STATE_PUSH_2);
+        sm_setState(SM_STATE_KICK);
       }
       break;
 
@@ -98,7 +94,7 @@ void sm_run(void) {
       break;
 
     case SM_STATE_KICK:
-      if(sm_state_time > 500) {
+      if(sm_state_time > 0) {
         sm_setState(SM_STATE_TURN_BACK);
       }
       break;
@@ -125,9 +121,6 @@ void sm_run(void) {
     }
 
     case SM_STATE_HOME_BRAKE:
-      if(sm_state_time > 50) {
-        control_setState(CONTROL_STATE_BRAKE);
-      }
       if(control_state == CONTROL_STATE_NEUTRAL) {
         sm_setState(SM_STATE_TURN_FORWARD);
       }
@@ -209,14 +202,13 @@ void sm_setState(sm_state_E state) {
 
       case SM_STATE_TARGET_BRAKE:
       case SM_STATE_HOME_BRAKE:
-        control_setTarget(-10);
-        control_setState(CONTROL_STATE_SPEED);
+        control_setState(CONTROL_STATE_BRAKE);
         break;
 
       case SM_STATE_AIM:
         //control_setState(CONTROL_STATE_HEADING);
-        control_setTarget(-45);
-        control_setState(CONTROL_STATE_TURN);
+        control_setTarget(config_get(CONFIG_ENTRY_AIM_TARGET));
+        control_setState(CONTROL_STATE_ARC);
         break;
 
       case SM_STATE_PUSH_1:

@@ -46,7 +46,7 @@ static pid_config_S pid_conf_count = {
   .output_max =  1.0,
   .output_min = -1.0,
 
-  .stable_margin = 0.05,
+  .stable_margin = 5.0,
 };
 
 static pid_data_S pid, pid2;
@@ -116,8 +116,10 @@ void control_run(void) {
     case CONTROL_STATE_MOVE:
     {
       double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
-      pid.config.output_max =  speed;
-      pid.config.output_min = -speed;
+      pid.config.output_max  =  speed;
+      pid.config.output_min  = -speed;
+      pid2.config.output_max =  speed;
+      pid2.config.output_min = -speed;
 
       double target = MOTOR_MM_TO_COUNT(control_target);
       double error1 = target - motor_getCount(M1);
@@ -139,13 +141,54 @@ void control_run(void) {
     case CONTROL_STATE_TURN:
     {
       double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
-      pid.config.output_max =  speed;
-      pid.config.output_min = -speed;
+      pid.config.output_max  =  speed;
+      pid.config.output_min  = -speed;
+      pid2.config.output_max =  speed;
+      pid2.config.output_min = -speed;
 
-      double radius = config_get(CONFIG_ENTRY_WHEEL_DIST) / 2;
-      double target = MOTOR_MM_TO_COUNT(radius * control_target / 180.0 * M_PI);
+      double wheel_dist = config_get(CONFIG_ENTRY_WHEEL_DIST) / 2;
+      double target = MOTOR_MM_TO_COUNT(wheel_dist * control_target / 180.0 * M_PI);
       double error1 = -target - motor_getCount(M1);
       double error2 =  target - motor_getCount(M2);
+
+      double u1 = pid_update(&pid, error1, control_reset);
+      double u2 = pid_update(&pid2, error2, control_reset);
+
+      motor_setSpeed(M1, u1);
+      motor_setSpeed(M2, u2);
+
+      if(pid.stable && pid2.stable) {
+        control_setState(CONTROL_STATE_NEUTRAL);
+      }
+
+      break;
+    }
+
+    case CONTROL_STATE_ARC:
+    {
+      double radius = config_get(CONFIG_ENTRY_ARC_RADIUS);
+      double wheel_dist = config_get(CONFIG_ENTRY_WHEEL_DIST) / 2;
+      double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
+      double ratio = 1 - wheel_dist / radius;
+      double target = MOTOR_MM_TO_COUNT(radius * fabs(control_target) / 180.0 * M_PI * 2);
+
+      double error1, error2;
+      if(control_target < 0) {
+        pid.config.output_max  =  speed;
+        pid.config.output_min  = -speed;
+        pid2.config.output_max =  speed * ratio;
+        pid2.config.output_min = -speed * ratio;
+
+        error1 = target - motor_getCount(M1);
+        error2 = target * ratio - motor_getCount(M2);
+      } else {
+        pid.config.output_max  =  speed * ratio;
+        pid.config.output_min  = -speed * ratio;
+        pid2.config.output_max =  speed;
+        pid2.config.output_min = -speed;
+        error1 = target * ratio - motor_getCount(M1);
+        error2 = target - motor_getCount(M2);
+      }
 
       double u1 = pid_update(&pid, error1, control_reset);
       double u2 = pid_update(&pid2, error2, control_reset);
@@ -221,9 +264,10 @@ void control_setState(control_state_E state) {
 
       case CONTROL_STATE_MOVE:
       case CONTROL_STATE_TURN:
+      case CONTROL_STATE_ARC:
         motor_resetCount(M1);
         motor_resetCount(M2);
-        pid.config = pid_conf_count;
+        pid.config  = pid_conf_count;
         pid2.config = pid_conf_count;
         control_reset = true;
         break;

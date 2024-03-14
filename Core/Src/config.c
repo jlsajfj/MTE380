@@ -64,6 +64,7 @@ static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
   [CONFIG_ENTRY_PUSH_2]         = { "push2",         50.0  },
   [CONFIG_ENTRY_PUSH_SPEED]     = { "push_speed",    50.0  },
   [CONFIG_ENTRY_AIM_TARGET]     = { "target",       -45.0  },
+  [CONFIG_ENTRY_ARC_RADIUS]     = { "arc_radius",   100.0  },
 };
 
 static union {
