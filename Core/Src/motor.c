@@ -7,6 +7,8 @@
 
 #include "stm32f4xx_hal.h"
 
+#include <stdlib.h>
+
 typedef enum {
   MOTOR_MODE_STOP,
   MOTOR_MODE_SPEED,
@@ -187,5 +189,5 @@ static void motor_setPWM_private(motor_E motor_id, double pwm) {
   HAL_GPIO_WritePin(motor->dir_port, motor->dir_pin, reversed ? GPIO_PIN_SET : GPIO_PIN_RESET);
 
   data->last_pwm = pwm;
-  *motor->pwm_reg = (uint32_t) (MIN(ABS(pwm), 1.0) * (motor->pwm_timer->Init.Period + 1));
+  *motor->pwm_reg = (uint32_t) (MIN(abs(pwm), 1.0) * (motor->pwm_timer->Init.Period + 1));
 }

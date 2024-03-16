@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <stdlib.h>
 
 static control_state_E control_state = CONTROL_STATE_INIT;
 static bool control_reset;
@@ -38,18 +39,7 @@ static pid_config_S pid_conf_aim = {
   .stable_margin = 0.1,
 };
 
-static pid_config_S pid_conf_count = {
-  .kp = CONFIG_ENTRY_COUNT_KP,
-  .ki = CONFIG_ENTRY_COUNT_KI,
-  .kd = CONFIG_ENTRY_COUNT_KD,
-
-  .output_max =  1.0,
-  .output_min = -1.0,
-
-  .stable_margin = 5.0,
-};
-
-static pid_data_S pid, pid2;
+static pid_data_S pid;
 static double control_target;
 static bool debug;
 
@@ -57,7 +47,6 @@ void control_init(void) {
   control_reset = true;
   debug = false;
   pid_init(&pid);
-  pid_init(&pid2);
   control_setState(CONTROL_STATE_NEUTRAL);
 }
 
@@ -116,22 +105,23 @@ void control_run(void) {
     case CONTROL_STATE_MOVE:
     {
       double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
-      pid.config.output_max  =  speed;
-      pid.config.output_min  = -speed;
-      pid2.config.output_max =  speed;
-      pid2.config.output_min = -speed;
+      int32_t target = MOTOR_MM_TO_COUNT(control_target);
 
-      double target = MOTOR_MM_TO_COUNT(control_target);
-      double error1 = target - motor_getCount(M1);
-      double error2 = target - motor_getCount(M2);
+      if(target < 0) {
+        speed = -speed;
+      }
 
-      double u1 = pid_update(&pid, error1, control_reset);
-      double u2 = pid_update(&pid2, error2, control_reset);
+      bool finished = true;
+      for(motor_E motor = M1; motor <= M2; motor++) {
+        if(abs(target) > abs(motor_getCount(motor))) {
+          motor_setSpeed(motor, speed);
+          finished = false;
+        } else {
+          motor_stop(motor);
+        }
+      }
 
-      motor_setSpeed(M1, u1);
-      motor_setSpeed(M2, u2);
-
-      if(pid.stable && pid2.stable) {
+      if(finished) {
         control_setState(CONTROL_STATE_NEUTRAL);
       }
 
@@ -141,23 +131,24 @@ void control_run(void) {
     case CONTROL_STATE_TURN:
     {
       double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
-      pid.config.output_max  =  speed;
-      pid.config.output_min  = -speed;
-      pid2.config.output_max =  speed;
-      pid2.config.output_min = -speed;
-
       double wheel_dist = config_get(CONFIG_ENTRY_WHEEL_DIST) / 2;
       double target = MOTOR_MM_TO_COUNT(wheel_dist * control_target / 180.0 * M_PI);
-      double error1 = -target - motor_getCount(M1);
-      double error2 =  target - motor_getCount(M2);
 
-      double u1 = pid_update(&pid, error1, control_reset);
-      double u2 = pid_update(&pid2, error2, control_reset);
+      if(target < 0) {
+        speed = -speed;
+      }
 
-      motor_setSpeed(M1, u1);
-      motor_setSpeed(M2, u2);
+      bool finished = true;
+      for(motor_E motor = M1; motor <= M2; motor++) {
+        if(abs(target) > abs(motor_getCount(motor))) {
+          motor_setSpeed(motor, motor == M1 ? -speed : speed);
+          finished = false;
+        } else {
+          motor_stop(motor);
+        }
+      }
 
-      if(pid.stable && pid2.stable) {
+      if(finished) {
         control_setState(CONTROL_STATE_NEUTRAL);
       }
 
@@ -168,35 +159,30 @@ void control_run(void) {
     {
       double radius = config_get(CONFIG_ENTRY_ARC_RADIUS);
       double wheel_dist = config_get(CONFIG_ENTRY_WHEEL_DIST) / 2;
-      double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
       double ratio = 1 - wheel_dist / radius;
+      double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
       double target = MOTOR_MM_TO_COUNT(radius * fabs(control_target) / 180.0 * M_PI * 2);
 
-      double error1, error2;
+      double ratios[MOTOR_COUNT];
       if(control_target < 0) {
-        pid.config.output_max  =  speed;
-        pid.config.output_min  = -speed;
-        pid2.config.output_max =  speed * ratio;
-        pid2.config.output_min = -speed * ratio;
-
-        error1 = target - motor_getCount(M1);
-        error2 = target * ratio - motor_getCount(M2);
+        ratios[M1] = 1;
+        ratios[M2] = ratio;
       } else {
-        pid.config.output_max  =  speed * ratio;
-        pid.config.output_min  = -speed * ratio;
-        pid2.config.output_max =  speed;
-        pid2.config.output_min = -speed;
-        error1 = target * ratio - motor_getCount(M1);
-        error2 = target - motor_getCount(M2);
+        ratios[M1] = ratio;
+        ratios[M2] = 1;
       }
 
-      double u1 = pid_update(&pid, error1, control_reset);
-      double u2 = pid_update(&pid2, error2, control_reset);
+      bool finished = true;
+      for(motor_E motor = M1; motor <= M2; motor++) {
+        if(abs(target * ratios[motor]) > abs(motor_getCount(motor))) {
+          motor_setSpeed(motor, speed * ratios[motor]);
+          finished = false;
+        } else {
+          motor_stop(motor);
+        }
+      }
 
-      motor_setSpeed(M1, u1);
-      motor_setSpeed(M2, u2);
-
-      if(pid.stable && pid2.stable) {
+      if(finished) {
         control_setState(CONTROL_STATE_NEUTRAL);
       }
 
@@ -267,9 +253,6 @@ void control_setState(control_state_E state) {
       case CONTROL_STATE_ARC:
         motor_resetCount(M1);
         motor_resetCount(M2);
-        pid.config  = pid_conf_count;
-        pid2.config = pid_conf_count;
-        control_reset = true;
         break;
 
       default:
