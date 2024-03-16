@@ -16,7 +16,7 @@
 #define STREAM_INTERVAL 5
 
 const char SB_ACK    = 0x06;
-const char SB_STEAM  = 0x0E;
+const char SB_STREAM = 0x0E;
 const char SB_CONFIG = 0x0F;
 
 typedef struct __attribute__((packed)) {
@@ -58,7 +58,7 @@ void tele_run(void) {
 
   tele_stream_count = (tele_stream_count + 1) % STREAM_INTERVAL;
   if(tele_stream_count == 0) {
-    tele_stream.start_byte = SB_STEAM;
+    tele_stream.start_byte = SB_STREAM;
 
     tele_stream.motor_speed[0] = SATURATE(motor_getSpeed(M1) / 16, -1, 1) * 0x7F;
     tele_stream.motor_speed[1] = SATURATE(motor_getSpeed(M2) / 16, -1, 1) * 0x7F;
