@@ -9,10 +9,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define PD_COUNT 6
 #define ADC_COUNT 7
 
-#define VBATT_INDEX PD_COUNT
+#define VBATT_INDEX SENSOR_PD_COUNT
 #define VBATT_COEFF ((4.7 + 2.2) / 2.2 * 3.3 / (1<<12)) // voltage divider * vref / 12bit
 
 typedef enum {
@@ -36,6 +35,7 @@ static double adc_reading[ADC_COUNT] = {0.0};
 static double sensor_result = 0.0;
 static double sensor_mean = 0.0;
 static double sensor_variance = 0.0;
+static double sensor_values[SENSOR_PD_COUNT] = {0.0};
 
 void sensor_init(void) {
 }
@@ -60,7 +60,7 @@ void sensor_run(void) {
           double sum = 0.0;
           double ssum = 0.0;
 
-          for(uint16_t i = 0; i < PD_COUNT; i++) {
+          for(uint16_t i = 0; i < SENSOR_PD_COUNT; i++) {
             double white = config_get(CONFIG_ENTRY_SENSOR_WHITE_0 + i);
             double black = config_get(CONFIG_ENTRY_SENSOR_BLACK_0 + i);
 
@@ -71,26 +71,26 @@ void sensor_run(void) {
               gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0 - 3 + i);
             }
 
-            double normalized = NORMALIZE(adc_reading[i], black, white);
+            sensor_values[i] = NORMALIZE(adc_reading[i], black, white);
 
-            sum += normalized;
-            ssum += normalized * normalized;
-            result += SATURATE(normalized, 0, 1) * gain / total_gain;
+            sum += sensor_values[i];
+            ssum += sensor_values[i] * sensor_values[i];
+            result += SATURATE(sensor_values[i], 0, 1) * gain / total_gain;
 
-            //printf("%11.4f", normalized);
+            //printf("%11.4f", sensor_values[i]);
           }
           //puts("");
 
           sensor_result = result;
-          sensor_mean = sum / PD_COUNT;
-          sensor_variance = ssum / PD_COUNT - sensor_mean * sensor_mean;
+          sensor_mean = sum / SENSOR_PD_COUNT;
+          sensor_variance = ssum / SENSOR_PD_COUNT - sensor_mean * sensor_mean;
 
           break;
         }
 
         case SENSOR_STATE_CAL_WHITE:
           puts("white: ");
-          for(uint16_t i = 0; i < PD_COUNT; i++) {
+          for(uint16_t i = 0; i < SENSOR_PD_COUNT; i++) {
               config_set(CONFIG_ENTRY_SENSOR_WHITE_0 + i, adc_reading[i]);
               printf("%11.4f", adc_reading[i]);
           }
@@ -100,7 +100,7 @@ void sensor_run(void) {
 
         case SENSOR_STATE_CAL_BLACK:
           puts("black: ");
-          for(uint16_t i = 0; i < PD_COUNT; i++) {
+          for(uint16_t i = 0; i < SENSOR_PD_COUNT; i++) {
               config_set(CONFIG_ENTRY_SENSOR_BLACK_0 + i, adc_reading[i]);
               printf("%11.4f", adc_reading[i]);
           }
@@ -151,4 +151,11 @@ double sensor_getVBatt(void) {
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
   adc_status = ADC_STATUS_FINISHED;
+}
+
+double sensor_getValue(uint32_t index) {
+  if(index < SENSOR_PD_COUNT) {
+    return sensor_values[index];
+  }
+  return 0.0;
 }

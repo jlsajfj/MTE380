@@ -164,6 +164,10 @@ double motor_getSpeed(motor_E motor_id) {
   return motor_datas[motor_id].speed;
 }
 
+double motor_getSpeedTarget(motor_E motor_id) {
+  return motor_datas[motor_id].speed_target;
+}
+
 void motor_setPWM(motor_E motor_id, double pwm) {
   motor_data_S *data = &motor_datas[motor_id];
   data->mode = MOTOR_MODE_PWM;

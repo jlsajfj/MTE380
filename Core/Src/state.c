@@ -94,7 +94,10 @@ void sm_run(void) {
       break;
 
     case SM_STATE_KICK:
-      if(sm_state_time > 0) {
+      if(sm_state_time > 100) {
+        servo_setPosition(S1, config_get(CONFIG_ENTRY_SERVO_UNLOCK));
+      }
+      if(sm_state_time > 200) {
         sm_setState(SM_STATE_TURN_BACK);
       }
       break;
@@ -222,7 +225,9 @@ void sm_setState(sm_state_E state) {
         break;
 
       case SM_STATE_KICK:
-        servo_setPosition(S1, config_get(CONFIG_ENTRY_SERVO_UNLOCK));
+        //servo_setPosition(S1, config_get(CONFIG_ENTRY_SERVO_UNLOCK));
+        control_setTarget(config_get(CONFIG_ENTRY_PUSH_2));
+        control_setState(CONTROL_STATE_MOVE);
         break;
 
       case SM_STATE_TURN_BACK:

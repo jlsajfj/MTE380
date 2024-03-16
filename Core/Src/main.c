@@ -37,6 +37,7 @@
 #include "helper.h"
 #include "config.h"
 #include "state.h"
+#include "telemetry.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -120,6 +121,7 @@ int main(void)
   control_init();
   servo_init();
   motor_init();
+  tele_init();
 
   HAL_TIM_Base_Start_IT(&htim5);
 
@@ -143,6 +145,7 @@ int main(void)
     control_run();
     servo_run();
     motor_run();
+    tele_run();
     uart_flush();
   }
   /* USER CODE END 3 */

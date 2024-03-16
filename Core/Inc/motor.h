@@ -25,6 +25,7 @@ void motor_stop(motor_E motor_id);
 void motor_resetCount(motor_E motor_id);
 int32_t motor_getCount(motor_E motor_id);
 double motor_getSpeed(motor_E motor_id);
+double motor_getSpeedTarget(motor_E motor_id);
 bool motor_isStable(motor_E motor_id);
 
 #endif /* INC_MOTOR_H_ */

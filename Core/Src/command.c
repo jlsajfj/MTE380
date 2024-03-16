@@ -9,6 +9,7 @@
 #include "config.h"
 #include "motor.h"
 #include "state.h"
+#include "telemetry.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -25,7 +26,6 @@ static uint16_t rx_idx = 0;
 
 static volatile bool rx_pend = false;
 static uint16_t rx_len = 0;
-static bool echo = true;
 
 static uint16_t btn_dbc = 0;
 
@@ -59,6 +59,7 @@ void command_run(void) {
 
   char sarg[64];
   double darg;
+  bool command_success = true;
 
 #define MATCH_CMD(x) (strlen(x) == rx_len && strncmp((x), (const char*) rx_buff, rx_len) == 0)
 #define MATCH_CMD_S(x) (sscanf((const char*) rx_buff, x " %s", sarg) == 1)
@@ -166,13 +167,11 @@ void command_run(void) {
 
     } else if(MATCH_CMD("get")) {
         config_print();
+        tele_dumpConfig();
 
-    } else if(MATCH_CMD_S("get ")) {
+    } else if(MATCH_CMD_S("get")) {
       double value = config_getByName(sarg);
       printf("%16s = %lf\n", sarg, value);
-
-    } else if(MATCH_CMD_D("echo")) {
-      echo = darg != 0;
 
     } else if(MATCH_CMD("debug")) {
       control_debug(-1);
@@ -180,13 +179,23 @@ void command_run(void) {
     } else if(MATCH_CMD_D("debug")) {
       control_debug((int) darg);
 
+    } else if(MATCH_CMD_D("stream")) {
+      tele_setEnabled(darg != 0);
+      uart_setTxFD(darg == 0 ? 1 : 2);
+
+    } else if(MATCH_CMD("sync")) {
+      tele_sync();
+
     } else if(MATCH_CMD("batt")) {
       double vbatt = sensor_getVBatt();
       printf("batt: %10.2lf\n", vbatt);
 
     } else {
       puts("unknown command");
+      command_success = false;
     }
+
+    tele_respond(command_success);
 
 #undef MATCH_CMD
 
@@ -195,13 +204,13 @@ void command_run(void) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-  if(echo) _write(0, &rx_char, 1);
+  _write(1, &rx_char, 1);
   HAL_UART_Receive_IT(huart, (uint8_t*) &rx_char, 1);
 
   if(rx_char == '\b') {
     if(rx_idx > 0) {
       char erase[] = " \b";
-      if(echo) _write(0, erase, 2);
+      _write(1, erase, 2);
       rx_idx--;
     }
   } else if(rx_char == '\r' || rx_char == '\n') {

@@ -29,6 +29,7 @@ static uint8_t uart_buff[UART_BUFF_SIZE * 2]; // two banks
 static uint16_t uart_buff_len;
 static uint8_t uart_buff_bank;
 static volatile bool uart_dma_ready;
+static uint16_t uart_fd;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart2;
@@ -43,6 +44,7 @@ void MX_USART2_UART_Init(void)
   uart_buff_len = 0;
   uart_buff_bank = 0;
   uart_dma_ready = true;
+  uart_fd = 1;
   /* USER CODE END USART2_Init 0 */
 
   /* USER CODE BEGIN USART2_Init 1 */
@@ -147,8 +149,8 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
-int _write(int file, char *ptr, int len) {
-  (void) file;
+int _write(int file, const char *ptr, int len) {
+  if(file != uart_fd) return len;
 
   if(UART_BUFF_SIZE - uart_buff_len < len) {
     return 0;
@@ -162,6 +164,14 @@ int _write(int file, char *ptr, int len) {
   }
 
   return len;
+}
+
+uint32_t uart_available(void) {
+  return UART_BUFF_SIZE - uart_buff_len;
+}
+
+void uart_setTxFD(int fd) {
+  uart_fd = fd;
 }
 
 void uart_flush(void) {

@@ -41,7 +41,9 @@ extern UART_HandleTypeDef huart2;
 void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-int _write(int file, char *ptr, int len);
+int _write(int file, const char *ptr, int len);
+uint32_t uart_available(void);
+void uart_setTxFD(int fd);
 void uart_flush(void);
 /* USER CODE END Prototypes */
 

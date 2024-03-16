@@ -4,7 +4,8 @@
 // double only because we only need it for now and I'm lazy
 
 typedef enum {
-   CONFIG_ENTRY_SENSOR_WHITE_0,
+   CONFIG_ENTRY_START = 0,
+   CONFIG_ENTRY_SENSOR_WHITE_0 = 0,
    CONFIG_ENTRY_SENSOR_WHITE_1,
    CONFIG_ENTRY_SENSOR_WHITE_2,
    CONFIG_ENTRY_SENSOR_WHITE_3,
