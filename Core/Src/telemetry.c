@@ -16,6 +16,7 @@
 #define STREAM_INTERVAL 5
 
 const char SB_ACK    = 0x06;
+const char SB_NACK   = 0x07;
 const char SB_STREAM = 0x0E;
 const char SB_CONFIG = 0x0F;
 
@@ -98,9 +99,7 @@ void tele_sync(void) {
 }
 
 void tele_respond(bool ack) {
-  if(ack) {
-    _write(2, &SB_ACK, 1);
-  }
+  _write(2, ack ? &SB_ACK : &SB_NACK, 1);
 }
 
 void tele_setEnabled(bool enable) {
