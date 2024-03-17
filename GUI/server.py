@@ -55,7 +55,30 @@ class robot:
         elif start == SB_STREAM:
             print("stream")
             data = self.s.read(25)
-            print(struct.unpack("<2b2b2iB6BBBI", data))
+            data_stream = dict(
+                zip(
+                    [
+                        "msl",
+                        "msr",
+                        "mtl",
+                        "mtr",
+                        "mel",
+                        "mer",
+                        "sta",
+                        "pd0",
+                        "pd1",
+                        "pd2",
+                        "pd3",
+                        "pd4",
+                        "pd5",
+                        "bav",
+                        "mag",
+                        "tis",
+                    ],
+                    struct.unpack("<2b2b2iB6BBBI", data),
+                )
+            )
+            print(data_stream)
 
         elif start == SB_CONFIG:
             print("config")
