@@ -6,6 +6,6 @@
 #define MAP(x, a, b) ((a) + x * ((b) - (a)))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define ABS(a) ((a) < 0 ? -(a) : (a))
+#define SIGN(x) ((x) > 0 ? 1 : (x) < 0 ? -1 : 0)
 
 #endif
