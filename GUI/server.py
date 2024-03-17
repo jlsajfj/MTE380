@@ -6,14 +6,16 @@ import serial
 import struct
 
 SYNC_COUNT = 50
-SB_ACK    = 0x06
+SB_ACK = 0x06
+SB_NACK = 0x07
 SB_STREAM = 0x0E
 SB_CONFIG = 0x0F
 
 CONFIG_C = "Core/Src/config.c"
 
+
 class robot:
-    def __init__(self, dn: str = "COM4", config_names = [], con: bool = False):
+    def __init__(self, dn: str = "COM4", config_names=[], con: bool = False):
         self.config_names = config_names
         self.dn = dn
         self.s = None
@@ -26,7 +28,7 @@ class robot:
             return
         print("connecting to device")
         self.s = serial.Serial(self.dn, 115200)
-        self.s.write(b'\n')
+        self.s.write(b"\n")
         print("bluetooth device has been connected")
 
     def sync(self):
@@ -41,10 +43,13 @@ class robot:
             else:
                 s_cnt = 0
 
-    def read(self):# https://stackoverflow.com/a/7155595
+    def read(self):  # https://stackoverflow.com/a/7155595
         start = self.s.read(1)[0]
         if start == SB_ACK:
             # TODO check for ACK from send() here
+            pass
+        elif start == SB_NACK:
+            # TODO check for NACK from send() here
             pass
 
         elif start == SB_STREAM:
@@ -63,10 +68,11 @@ class robot:
             print(f"unknown start byte {start}")
 
     def send(self, cmd):
-        self.s.write(cmd.encode() + b'\n')
+        self.s.write(cmd.encode() + b"\n")
         # TODO send() and read() should be in different threads
         # send() should block until read() gets an ACK in the right position
-        while self.s.read(1)[0] != 0x06: pass
+        while self.s.read(1)[0] != 0x06:
+            pass
 
     def disconnect(self):
         print("disconnecting")
@@ -96,7 +102,7 @@ def main():
 
 def find_config_names():
     config_re = re.compile(r'\[CONFIG_ENTRY_[A-Z0-9_]+\]\s+=\s+{ "(\w+)"')
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', CONFIG_C)
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", CONFIG_C)
     with open(path) as fd:
         return config_re.findall(fd.read())
 
