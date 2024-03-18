@@ -6,6 +6,7 @@
 #include "servo.h"
 #include "motor.h"
 #include "helper.h"
+#include "speed.h"
 
 #include <stdint.h>
 
@@ -18,16 +19,6 @@ typedef struct {
   int32_t count;
   double speed;
 } speed_point_S;
-
-static const speed_point_S speed_points[] = {
-  {MOTOR_MM_TO_COUNT(0) ,   2.0},
-  {MOTOR_MM_TO_COUNT(1200), 1.0},
-  {MOTOR_MM_TO_COUNT(1600), 2.0},
-  {MOTOR_MM_TO_COUNT(2600), 1.0},
-  {MOTOR_MM_TO_COUNT(4000), 2.0},
-  {MOTOR_MM_TO_COUNT(4300), 1.0},
-  {MOTOR_MM_TO_COUNT(5700), 0.3},
-};
 
 void sm_init(void) {
   sm_setState(SM_STATE_STANDBY);
@@ -54,16 +45,8 @@ void sm_run(void) {
         sm_setState(SM_STATE_TARGET_BRAKE);
       }
 
-      uint32_t num_points = sizeof(speed_points) / sizeof(speed_points[0]);
       int32_t count = (motor_getCount(M1) + motor_getCount(M2)) / 2;
-      double speed = speed_points[num_points-1].speed;
-      for(int i = 0; i < num_points; i++) {
-        if(count < speed_points[i].count) {
-          speed = speed_points[MAX(i-1, 0)].speed;
-          break;
-        }
-      }
-
+      double speed = speed_fromCount(count, false);
       control_setTarget(speed * config_get(CONFIG_ENTRY_MOTOR_SPEED));
 
       break;
@@ -115,7 +98,7 @@ void sm_run(void) {
       double mean_th = config_get(CONFIG_ENTRY_HOME_MEAN);
       double var_th  = config_get(CONFIG_ENTRY_HOME_VAR);
       if(mean < mean_th && var < var_th) {
-        sm_setState(SM_STATE_HOME_BRAKE);
+        sm_setState(SM_STATE_BACKUP);
       }
 
       control_setTarget(config_get(CONFIG_ENTRY_MOTOR_SPEED));
@@ -123,7 +106,7 @@ void sm_run(void) {
       break;
     }
 
-    case SM_STATE_HOME_BRAKE:
+    case SM_STATE_BACKUP:
       if(control_state == CONTROL_STATE_NEUTRAL) {
         sm_setState(SM_STATE_TURN_FORWARD);
       }
@@ -131,11 +114,11 @@ void sm_run(void) {
 
     case SM_STATE_TURN_FORWARD:
       if(control_state == CONTROL_STATE_NEUTRAL) {
-        sm_setState(SM_STATE_BACKUP);
+        sm_setState(SM_STATE_BACKIN);
       }
       break;
 
-    case SM_STATE_BACKUP:
+    case SM_STATE_BACKIN:
       if(control_state == CONTROL_STATE_NEUTRAL) {
         sm_setState(SM_STATE_STANDBY);
       }
@@ -156,6 +139,22 @@ void sm_run(void) {
       }
       break;
 
+    case SM_STATE_RECORD:
+    {
+      double mean = sensor_getMean();
+      double var  = sensor_getVariance();
+      double mean_th = config_get(CONFIG_ENTRY_TARGET_MEAN);
+      double var_th  = config_get(CONFIG_ENTRY_TARGET_VAR);
+
+      if(mean < mean_th && var < var_th) {
+        sm_setState(SM_STATE_STANDBY);
+      }
+
+      control_setTarget(config_get(CONFIG_ENTRY_MOTOR_SPEED));
+
+      break;
+    }
+
     default:
       break;
   }
@@ -168,7 +167,7 @@ void sm_setState(sm_state_E state) {
   if(state != sm_state) {
     // state end action
     switch(sm_state) {
-      case SM_STATE_BACKUP:
+      case SM_STATE_BACKIN:
         servo_setPosition(S2, config_get(CONFIG_ENTRY_SERVO_LOCK));
         break;
 
@@ -177,6 +176,10 @@ void sm_setState(sm_state_E state) {
         if(state != SM_STATE_CALIBRATE) {
           compass_setState(COMPASS_STATE_IDLE);
         }
+        break;
+
+      case SM_STATE_RECORD:
+        speed_stopRecord();
         break;
 
       default:
@@ -204,7 +207,6 @@ void sm_setState(sm_state_E state) {
         break;
 
       case SM_STATE_TARGET_BRAKE:
-      case SM_STATE_HOME_BRAKE:
         control_setState(CONTROL_STATE_BRAKE);
         break;
 
@@ -235,13 +237,18 @@ void sm_setState(sm_state_E state) {
         control_setState(CONTROL_STATE_TURN);
         break;
 
+      case SM_STATE_BACKUP:
+        control_setTarget(config_get(CONFIG_ENTRY_BACKUP));
+        control_setState(CONTROL_STATE_MOVE);
+        break;
+
       case SM_STATE_TURN_FORWARD:
         control_setTarget(-180.0);
         control_setState(CONTROL_STATE_TURN);
         break;
 
-      case SM_STATE_BACKUP:
-        control_setTarget(config_get(CONFIG_ENTRY_BACKUP));
+      case SM_STATE_BACKIN:
+        control_setTarget(config_get(CONFIG_ENTRY_BACKIN));
         control_setState(CONTROL_STATE_MOVE);
         break;
 
@@ -253,6 +260,13 @@ void sm_setState(sm_state_E state) {
       case SM_STATE_CALIBRATE_MOVE:
         control_setTarget(360.0 / 8);
         control_setState(CONTROL_STATE_TURN);
+        break;
+
+      case SM_STATE_RECORD:
+        motor_resetCount(M1);
+        motor_resetCount(M2);
+        control_setState(CONTROL_STATE_FOLLOW);
+        speed_startRecord();
         break;
 
       default:

@@ -196,12 +196,9 @@ void control_run(void) {
   control_reset = false;
 
   if(debug) {
-    printf("%ld %.4lf %.4f %.4lf %.4lf\n",
+    printf("%ld %.4lf\n",
       HAL_GetTick(),
-      sensor_getMean(),
-      sensor_getVariance(),
-      compass_getHeading(),
-      sensor_getVBatt()
+      sensor_getResult()
     );
   }
 }

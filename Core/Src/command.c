@@ -79,6 +79,9 @@ void command_run(void) {
     } else if(MATCH_CMD("calibrate")) {
       sm_setState(SM_STATE_CALIBRATE);
 
+    } else if(MATCH_CMD("record")) {
+      sm_setState(SM_STATE_RECORD);
+
     } else if(MATCH_CMD("white")) {
       sensor_calibrate_white();
 

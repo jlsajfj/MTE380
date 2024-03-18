@@ -59,12 +59,21 @@ static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
   [CONFIG_ENTRY_AIM_KD]         = { "ad",             0.0  },
   [CONFIG_ENTRY_WHEEL_DIST]     = { "wheel_dist",   123.0  },
   [CONFIG_ENTRY_TURNBACK]       = { "turnback",    -135.0  },
-  [CONFIG_ENTRY_BACKUP]         = { "backup",       -50.0  },
+  [CONFIG_ENTRY_BACKIN]         = { "backup",       -50.0  },
+  [CONFIG_ENTRY_BACKUP]         = { "backin",      -100.0  },
   [CONFIG_ENTRY_PUSH_1]         = { "push1",        100.0  },
   [CONFIG_ENTRY_PUSH_2]         = { "push2",         50.0  },
   [CONFIG_ENTRY_PUSH_SPEED]     = { "push_speed",    50.0  },
   [CONFIG_ENTRY_AIM_TARGET]     = { "target",       -45.0  },
   [CONFIG_ENTRY_ARC_RADIUS]     = { "arc_radius",   100.0  },
+  [CONFIG_ENTRY_SPEED_RISE]     = { "speed_rise",     1.0  },
+  [CONFIG_ENTRY_SPEED_FALL]     = { "speed_fall",     0.5  },
+  [CONFIG_ENTRY_FAST_OFFSET]    = { "fast_offset",  -80.0  },
+  [CONFIG_ENTRY_SLOW_OFFSET]    = { "slow_offset",  -80.0  },
+  [CONFIG_ENTRY_FINISH_OFFSET]  = { "finish_offset", -80.0 },
+  [CONFIG_ENTRY_SPEED_FAST]     = { "speed_fast",      2.0 },
+  [CONFIG_ENTRY_SPEED_SLOW]     = { "speed_slow",      2.0 },
+  [CONFIG_ENTRY_SPEED_FINISH]   = { "speed_finish",    0.5 },
 };
 
 static union {
