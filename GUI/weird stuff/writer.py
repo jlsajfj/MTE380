@@ -1,5 +1,6 @@
 from celery import Celery
 import struct
+from server import update_data
 
 app = Celery('writer', backend='rpc://', broker='pyamqp://')
 
@@ -36,6 +37,7 @@ def stream(data_stream: bytes):
             struct.unpack("<2b2b2iB6BBBI", data_stream),
         )
     )
+    update_data.apply_async(args=(data['tis'], data['mel']))
     print(data)
 
 @app.task
