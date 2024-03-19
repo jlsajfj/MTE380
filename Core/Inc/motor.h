@@ -1,6 +1,8 @@
 #ifndef INC_MOTOR_H_
 #define INC_MOTOR_H_
 
+#include "stm32f4xx_hal.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
@@ -17,10 +19,12 @@ typedef enum {
 
 void motor_init(void);
 void motor_run(void);
+void motor_timerIT(TIM_HandleTypeDef *htim);
 
 void motor_setSpeed(motor_E motor_id, double speed);
 void motor_setPWM(motor_E motor_id, double pwm);
 void motor_stop(motor_E motor_id);
+void motor_buzz(motor_E motor_id, double freq);
 
 void motor_resetCount(motor_E motor_id);
 int32_t motor_getCount(motor_E motor_id);

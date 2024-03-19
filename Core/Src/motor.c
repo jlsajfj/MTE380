@@ -8,11 +8,13 @@
 #include "stm32f4xx_hal.h"
 
 #include <stdlib.h>
+#include <math.h>
 
 typedef enum {
   MOTOR_MODE_STOP,
   MOTOR_MODE_SPEED,
   MOTOR_MODE_PWM,
+  MOTOR_MODE_BUZZ,
 } motor_mode_E;
 
 typedef struct {
@@ -25,6 +27,8 @@ typedef struct {
 
   __IO uint32_t *enc_reg;
   TIM_HandleTypeDef *enc_timer;
+
+  TIM_HandleTypeDef *buzz_timer;
 
   bool flip_dir;
   bool flip_enc;
@@ -51,6 +55,7 @@ static const motor_definition_S motors[MOTOR_COUNT] = {
     .pwm_timer_channel = TIM_CHANNEL_2,
     .enc_reg           = &TIM1->CNT,
     .enc_timer         = &htim1,
+    .buzz_timer        = &htim9,
     .flip_dir          = true,
     .flip_enc          = false,
   },
@@ -62,6 +67,7 @@ static const motor_definition_S motors[MOTOR_COUNT] = {
     .pwm_timer_channel = TIM_CHANNEL_1,
     .enc_reg           = &TIM3->CNT,
     .enc_timer         = &htim3,
+    .buzz_timer        = &htim10,
     .flip_dir          = false,
     .flip_enc          = true,
   },
@@ -79,10 +85,13 @@ static pid_config_S motor_pid_config = {
 };
 
 static motor_data_S motor_datas[MOTOR_COUNT];
+static uint32_t sysclk_freq = 0;
 
 static void motor_setPWM_private(motor_E motor_id, double pwm);
 
 void motor_init(void) {
+  sysclk_freq = HAL_RCC_GetSysClockFreq();
+
   for(motor_E motor_id = M1; motor_id < MOTOR_COUNT; motor_id++) {
     const motor_definition_S *motor = &motors[motor_id];
     motor_data_S *data = &motor_datas[motor_id];
@@ -94,6 +103,7 @@ void motor_init(void) {
 
     HAL_TIM_PWM_Start(motor->pwm_timer, motor->pwm_timer_channel);
     HAL_TIM_Encoder_Start(motor->enc_timer, TIM_CHANNEL_ALL);
+    HAL_TIM_Base_Start_IT(motor->buzz_timer);
   }
 }
 
@@ -139,6 +149,16 @@ void motor_run(void) {
   }
 }
 
+void motor_timerIT(TIM_HandleTypeDef *htim) {
+  for(motor_E motor_id = M1; motor_id < MOTOR_COUNT; motor_id++) {
+    const motor_definition_S *motor = &motors[motor_id];
+    motor_data_S *data = &motor_datas[motor_id];
+    if(data->mode == MOTOR_MODE_BUZZ && htim == motor->buzz_timer) {
+      HAL_GPIO_TogglePin(motor->dir_port, motor->dir_pin);
+    }
+  }
+}
+
 void motor_setSpeed(motor_E motor_id, double speed) {
   motor_data_S *data = &motor_datas[motor_id];
   data->speed_target = speed;
@@ -148,6 +168,15 @@ void motor_setSpeed(motor_E motor_id, double speed) {
 void motor_stop(motor_E motor_id) {
   motor_data_S *data = &motor_datas[motor_id];
   data->mode = MOTOR_MODE_STOP;
+}
+
+void motor_buzz(motor_E motor_id, double freq) {
+    const motor_definition_S *motor = &motors[motor_id];
+    motor_data_S *data = &motor_datas[motor_id];
+    uint32_t period = round(sysclk_freq / freq / 4) - 1;
+    data->mode = MOTOR_MODE_BUZZ;
+    motor_setPWM_private(motor_id, 1.0);
+    __HAL_TIM_SET_AUTORELOAD(motor->buzz_timer, period);
 }
 
 void motor_resetCount(motor_E motor_id) {
@@ -182,10 +211,8 @@ bool motor_isStable(motor_E motor_id) {
 
 static void motor_setPWM_private(motor_E motor_id, double pwm) {
   const motor_definition_S *motor = &motors[motor_id];
-  motor_data_S *data = &motor_datas[motor_id];
   const bool reversed = (pwm < 0) != motor->flip_dir;
 
   HAL_GPIO_WritePin(motor->dir_port, motor->dir_pin, reversed ? GPIO_PIN_SET : GPIO_PIN_RESET);
-
   *motor->pwm_reg = (uint32_t) (MIN(abs(pwm), 1.0) * (motor->pwm_timer->Init.Period + 1));
 }

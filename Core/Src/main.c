@@ -24,6 +24,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "music.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -112,6 +113,8 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM5_Init();
   MX_I2C1_Init();
+  MX_TIM9_Init();
+  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
 
   config_load();
@@ -124,6 +127,7 @@ int main(void)
   motor_init();
   speed_init();
   tele_init();
+  music_init();
 
   HAL_TIM_Base_Start_IT(&htim5);
 
@@ -149,6 +153,7 @@ int main(void)
     motor_run();
     speed_run();
     tele_run();
+    music_run();
     uart_flush();
   }
   /* USER CODE END 3 */
@@ -201,8 +206,10 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
-  if(htim != &htim5) return;
-  start_loop = true;
+  if(htim == &htim5) {
+    start_loop = true;
+  }
+  motor_timerIT(htim);
 }
 /* USER CODE END 4 */
 

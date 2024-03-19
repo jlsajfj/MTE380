@@ -11,6 +11,7 @@
 #include "state.h"
 #include "telemetry.h"
 #include "speed.h"
+#include "music.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -74,8 +75,19 @@ void command_run(void) {
     } else if(MATCH_CMD("stop")) {
       sm_setState(SM_STATE_STANDBY);
       control_setState(CONTROL_STATE_NEUTRAL);
+      music_stop();
       motor_stop(M1);
       motor_stop(M2);
+
+    } else if(MATCH_CMD("play")) {
+      music_play();
+
+    } else if(MATCH_CMD("pause")) {
+      music_pause();
+
+    } else if(MATCH_CMD_D("buzz")) {
+      motor_buzz(M1, darg);
+      motor_buzz(M2, darg);
 
     } else if(MATCH_CMD("calibrate")) {
       sm_setState(SM_STATE_CALIBRATE);
@@ -110,7 +122,6 @@ void command_run(void) {
       control_setState(CONTROL_STATE_ARC);
 
     } else if(MATCH_CMD_D("pwm")) {
-      control_setState(CONTROL_STATE_NEUTRAL);
       motor_setPWM(M1, darg);
       motor_setPWM(M2, darg);
 
