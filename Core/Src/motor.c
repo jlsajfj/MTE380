@@ -39,7 +39,6 @@ typedef struct {
   int32_t count;
   double speed;
 
-  double last_pwm;
   pid_data_S pid;
 } motor_data_S;
 
@@ -188,6 +187,5 @@ static void motor_setPWM_private(motor_E motor_id, double pwm) {
 
   HAL_GPIO_WritePin(motor->dir_port, motor->dir_pin, reversed ? GPIO_PIN_SET : GPIO_PIN_RESET);
 
-  data->last_pwm = pwm;
   *motor->pwm_reg = (uint32_t) (MIN(abs(pwm), 1.0) * (motor->pwm_timer->Init.Period + 1));
 }

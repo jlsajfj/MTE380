@@ -8,7 +8,7 @@ typedef enum {
 } flash_address_E;
 
 HAL_StatusTypeDef flash_erase(void);
-HAL_StatusTypeDef flash_write(flash_address_E address, uint8_t *data, size_t len);
-void flash_read(flash_address_E flash_address_E, uint8_t *data, size_t len);
+HAL_StatusTypeDef flash_write(flash_address_E address, void *data, size_t len);
+void flash_read(flash_address_E flash_address_E, void *data, size_t len);
 
 #endif

@@ -10,6 +10,7 @@
 #include "motor.h"
 #include "state.h"
 #include "telemetry.h"
+#include "speed.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -149,14 +150,17 @@ void command_run(void) {
 
     } else if(MATCH_CMD("save")) {
       flash_erase();
+      speed_save();
       config_save();
       puts("saved");
 
     } else if(MATCH_CMD("load")) {
+      speed_load();
       config_load();
 
     } else if(MATCH_CMD("erase")) {
       flash_erase();
+      speed_load();
       config_load();
       puts("erased");
 

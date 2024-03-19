@@ -9,7 +9,7 @@ void speed_run(void);
 
 void speed_startRecord(void);
 void speed_stopRecord(void);
-double speed_fromCount(int32_t step, bool reverse);
+double speed_fromCount(int32_t step);
 
 void speed_save(void);
 void speed_load(void);

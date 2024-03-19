@@ -25,12 +25,12 @@ HAL_StatusTypeDef flash_erase(void) {
   return status;
 }
 
-HAL_StatusTypeDef flash_write(flash_address_E address, uint8_t *data, size_t len) {
+HAL_StatusTypeDef flash_write(flash_address_E address, void *data, size_t len) {
   HAL_FLASH_Unlock();
 
   HAL_StatusTypeDef status = HAL_OK;
   for(size_t i = 0; i < len && status == HAL_OK; i++) {
-    status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, (uint32_t) &flash + address + i, data[i]);
+    status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, (uint32_t) &flash + address + i, ((uint8_t*) data)[i]);
   }
 
   HAL_FLASH_Lock();
@@ -38,6 +38,6 @@ HAL_StatusTypeDef flash_write(flash_address_E address, uint8_t *data, size_t len
   return status;
 }
 
-void flash_read(flash_address_E address, uint8_t *data, size_t len) {
+void flash_read(flash_address_E address, void *data, size_t len) {
   memcpy(data, flash + address, len);
 }

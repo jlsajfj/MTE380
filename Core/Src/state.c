@@ -46,7 +46,7 @@ void sm_run(void) {
       }
 
       int32_t count = (motor_getCount(M1) + motor_getCount(M2)) / 2;
-      double speed = speed_fromCount(count, false);
+      double speed = speed_fromCount(count);
       control_setTarget(speed * config_get(CONFIG_ENTRY_MOTOR_SPEED));
 
       break;

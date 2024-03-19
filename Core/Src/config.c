@@ -76,29 +76,26 @@ static config_entry_S config_entries[CONFIG_ENTRY_COUNT] = {
   [CONFIG_ENTRY_SPEED_FINISH]   = { "speed_finish",    0.5 },
 };
 
-static union {
-  double values[CONFIG_ENTRY_COUNT];
-  uint8_t raw[sizeof(double) * CONFIG_ENTRY_COUNT];
-} config_values;
+static double config_values[CONFIG_ENTRY_COUNT];
 
 static config_id_E config_getIdByName(char *name);
 
 void config_set(config_id_E id, double value) {
   if(id >= 0 && id < CONFIG_ENTRY_COUNT) {
-    config_values.values[id] = value;
+    config_values[id] = value;
   }
 }
 
 double config_get(config_id_E id) {
   if(id >= 0 && id < CONFIG_ENTRY_COUNT) {
-    return config_values.values[id];
+    return config_values[id];
   }
   return 0.0;
 }
 
 double *config_getPtr(config_id_E id) {
   if(id >= 0 && id < CONFIG_ENTRY_COUNT) {
-    return config_values.values + id;
+    return config_values + id;
   }
   return NULL;
 }
@@ -112,24 +109,24 @@ void config_setByName(char *name, double value) {
 }
 
 void config_load(void) {
-  flash_read(FLASH_ADDR_CONFIG, config_values.raw, sizeof(config_values));
+  flash_read(FLASH_ADDR_CONFIG, &config_values, sizeof(config_values));
 
   for(uint16_t i = 0; i < CONFIG_ENTRY_COUNT; i++) {
-    if(isnan(config_values.values[i])) {
+    if(isnan(config_values[i])) {
       printf("loading default for %s\n", config_entries[i].name);
-      config_values.values[i] = config_entries[i].default_value;
+      config_values[i] = config_entries[i].default_value;
     }
-    printf("%16s = %lf\n", config_entries[i].name, config_values.values[i]);
+    printf("%16s = %lf\n", config_entries[i].name, config_values[i]);
   }
 }
 
 void config_save(void) {
-  flash_write(FLASH_ADDR_CONFIG, config_values.raw, sizeof(config_values));
+  flash_write(FLASH_ADDR_CONFIG, &config_values, sizeof(config_values));
 }
 
 void config_print(void) {
   for(uint16_t i = 0; i < CONFIG_ENTRY_COUNT; i++) {
-    printf("%16s = %lf\n", config_entries[i].name, config_values.values[i]);
+    printf("%16s = %lf\n", config_entries[i].name, config_values[i]);
   }
 }
 
