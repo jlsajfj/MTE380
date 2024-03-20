@@ -36,6 +36,7 @@ static void speed_add_point(speed_type_E);
 void speed_init(void) {
   speed_state = SPEED_STATE_NORMAL;
   speed_num_points = 0;
+  speed_load();
 }
 
 void speed_run(void) {
@@ -93,17 +94,17 @@ double speed_fromCount(int32_t count) {
 
     switch(speed_points[i].type) {
       case SPEED_TYPE_FAST:
-        c += config_get(CONFIG_ENTRY_FAST_OFFSET);
+        c += MOTOR_MM_TO_COUNT(config_get(CONFIG_ENTRY_FAST_OFFSET));
         s  = config_get(CONFIG_ENTRY_SPEED_FAST);
         break;
 
       case SPEED_TYPE_SLOW:
-        c += config_get(CONFIG_ENTRY_SLOW_OFFSET);
+        c += MOTOR_MM_TO_COUNT(config_get(CONFIG_ENTRY_SLOW_OFFSET));
         s  = config_get(CONFIG_ENTRY_SPEED_SLOW);
         break;
 
       case SPEED_TYPE_FINISH:
-        c += config_get(CONFIG_ENTRY_FINISH_OFFSET);
+        c += MOTOR_MM_TO_COUNT(config_get(CONFIG_ENTRY_FINISH_OFFSET));
         s  = config_get(CONFIG_ENTRY_SPEED_FINISH);
         break;
     }
@@ -119,10 +120,13 @@ double speed_fromCount(int32_t count) {
 void speed_save(void) {
   flash_write(FLASH_ADDR_SPEED_POINTS, &speed_num_points, sizeof(speed_num_points));
   flash_write(FLASH_ADDR_SPEED_POINTS + sizeof(speed_num_points), &speed_points, speed_num_points * sizeof(speed_points[0]));
+  puts("speed data saved");
 }
 
 void speed_load(void) {
   flash_read(FLASH_ADDR_SPEED_POINTS, &speed_num_points, sizeof(speed_num_points));
+
+  printf("loading %d points\n", speed_num_points);
 
   if(speed_num_points == 0xFFFF) {
     speed_num_points = 0;
@@ -131,7 +135,7 @@ void speed_load(void) {
   }
 
   for(uint32_t i = 0; i < speed_num_points; i++) {
-    printf("%10lf %df\n", speed_points[i].count / MOTOR_COUNT_PER_MM, speed_points[i].type);
+    printf("%10lf %d\n", speed_points[i].count / MOTOR_COUNT_PER_MM, speed_points[i].type);
   }
 }
 

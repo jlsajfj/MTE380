@@ -171,12 +171,12 @@ void motor_stop(motor_E motor_id) {
 }
 
 void motor_buzz(motor_E motor_id, double freq) {
-    const motor_definition_S *motor = &motors[motor_id];
-    motor_data_S *data = &motor_datas[motor_id];
-    uint32_t period = round(sysclk_freq / freq / 4) - 1;
-    data->mode = MOTOR_MODE_BUZZ;
-    motor_setPWM_private(motor_id, 1.0);
-    __HAL_TIM_SET_AUTORELOAD(motor->buzz_timer, period);
+  const motor_definition_S *motor = &motors[motor_id];
+  motor_data_S *data = &motor_datas[motor_id];
+  uint32_t period = round(sysclk_freq / freq / 4) - 1;
+  data->mode = MOTOR_MODE_BUZZ;
+  motor_setPWM_private(motor_id, 1.0);
+  __HAL_TIM_SET_AUTORELOAD(motor->buzz_timer, period);
 }
 
 void motor_resetCount(motor_E motor_id) {

@@ -98,13 +98,19 @@ void sm_run(void) {
       double mean_th = config_get(CONFIG_ENTRY_HOME_MEAN);
       double var_th  = config_get(CONFIG_ENTRY_HOME_VAR);
       if(mean < mean_th && var < var_th) {
-        sm_setState(SM_STATE_BACKUP);
+        sm_setState(SM_STATE_HOME_BRAKE);
       }
 
       control_setTarget(config_get(CONFIG_ENTRY_MOTOR_SPEED));
 
       break;
     }
+
+    case SM_STATE_HOME_BRAKE:
+      if(control_state == CONTROL_STATE_NEUTRAL) {
+        sm_setState(SM_STATE_BACKUP);
+      }
+      break;
 
     case SM_STATE_BACKUP:
       if(control_state == CONTROL_STATE_NEUTRAL) {
@@ -207,6 +213,7 @@ void sm_setState(sm_state_E state) {
         break;
 
       case SM_STATE_TARGET_BRAKE:
+      case SM_STATE_HOME_BRAKE:
         control_setState(CONTROL_STATE_BRAKE);
         break;
 

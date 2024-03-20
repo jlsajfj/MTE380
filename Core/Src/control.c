@@ -196,9 +196,10 @@ void control_run(void) {
   control_reset = false;
 
   if(debug) {
-    printf("%ld %.4lf\n",
+    printf("%ld %.4lf %.4lf\n",
       HAL_GetTick(),
-      sensor_getResult()
+      sensor_getMean(),
+      sensor_getVariance()
     );
   }
 }
