@@ -23,6 +23,7 @@ typedef enum {
   SM_STATE_CALIBRATE_MOVE,
 
   SM_STATE_RECORD,
+  SM_STATE_RECORD_BRAKE,
 
   SM_STATE_COUNT,
 } sm_state_E;
