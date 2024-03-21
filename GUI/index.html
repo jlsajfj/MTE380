@@ -1,5 +1,6 @@
 <html>
   <head>
+    <meta name="viewport", content="width=device-width, initial-scale=1.0">
     <title>Robot GUI</title>
     <link rel="stylesheet" href="main.css">
   </head>
@@ -17,19 +18,20 @@
       </form>
     </div>
     <div class="grid-container">
-      <div class="left" style="background-color:#aaa;">
+      <div class="left">
         <canvas id="encChart">
         </canvas>
       </div>
-      <div class="middle" style="background-color:#bbb;">
-        <canvas id="speChart">
+      <div class="middle">
+        <canvas id="speChartL">
         </canvas>
       </div>
-      <div class="right" style="background-color:#ccc;">
-        <pre id="config">
-        </pre>
+      <div class="right">
+        <canvas id="speChartR">
+        </canvas>
       </div>
     </div>
+    <pre id="config"></pre>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script language="javascript" src="main.js"></script>
   </body>

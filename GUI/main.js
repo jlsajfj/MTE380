@@ -1,70 +1,57 @@
-const C_YELLOW = 'rgb(250, 237, 203)';
-const C_GREEN = 'rgb(201, 228, 222)';
-const C_BLUE = 'rgb(198, 222, 241)';
-const C_PURPLE = 'rgb(219, 205, 240)';
-const C_RED = 'rgb(242, 198, 222)';
-const C_ORANGE = 'rgb(247, 217, 198)';
+const C_RED = '#dc322f';
+const C_ORANGE = '#b58900';
+const C_YELLOW = '#859900';
+const C_GREEN = '#268bd2';
+const C_BLUE = '#6c71c4';
+const C_PURPLE = '#d33682';
+const COLORS = [C_RED, C_ORANGE, C_YELLOW, C_GREEN, C_BLUE, C_PURPLE];
 
-const speChart = new Chart(
-        document.getElementById('speChart'),
-        {
+let charts = [];
+function buildChart(name, inputs){
+    let canvas = document.getElementById(name);
+    let d = inputs.map((l, i) => {
+        return {
+            label: l,
+            backgroundColor: COLORS[i % 6],
+            borderColor: COLORS[i % 6],
+            data:[]
+        };
+    });
+    let config = {
             type: 'line',
             data: {
                 labels: [],
-                datasets: [
-                    {
-                        label: 'msl',
-                        backgroundColor: C_RED,
-                        borderColor: C_RED,
-                        data: [],
-                    },
-                    {
-                        label: 'msr',
-                        backgroundColor: C_ORANGE,
-                        borderColor: C_ORANGE,
-                        data: [],
-                    },
-                    {
-                        label: 'mtl',
-                        backgroundColor: C_YELLOW,
-                        borderColor: C_YELLOW,
-                        data: [],
-                    },
-                    {
-                        label: 'mtr',
-                        backgroundColor: C_GREEN,
-                        borderColor: C_GREEN,
-                        data: [],
-                    },
-                ]
+                datasets: d,
             },
             options: {
-                animation: false
-            }
-        });
-const encChart = new Chart(
-        document.getElementById('encChart'),
-        {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                        label: 'mel',
-                        backgroundColor: 'rgb(255, 99, 132)',
-                        borderColor: 'rgb(255, 99, 132)',
-                        data: [],
-                    }, {
-                        label: 'mer',
-                        backgroundColor: 'rgb(132, 255, 99)',
-                        borderColor: 'rgb(132, 255, 99)',
-                        data: [],
-                    }
-                ]
+                animation: false,
+                scales: {
+                    x: {
+                        ticks: {
+                            color: "#839496",
+                        },
+                        grid: {
+                            color: "#839496",
+                        },
+                    },
+                    y: {
+                        ticks: {
+                            color: "#839496",
+                        },
+                        grid: {
+                            color: "#839496",
+                        },
+                    },
+                },
+                color: '#839496',
             },
-            options: {
-                animation: false
-            }
-        });
+        };
+    let chart = new Chart(canvas, config);
+    charts.push(chart);
+}
+buildChart('speChartL', ['mtl', 'msl']);
+buildChart('speChartR', ['mtr', 'msr']);
+buildChart('encChart', ['mel', 'mer']);
 
 let wurl = 'ws://localhost:8000/'
 
@@ -96,8 +83,6 @@ function onOpen(evt) {
     writeToScreen("connected\n");
     document.myform.connectButton.disabled = true;
     document.myform.disconnectButton.disabled = false;
-    setInterval(() => doSend('get'), 1000);
-    doSend('get');
 }
 
 function onClose(evt) {
@@ -111,8 +96,7 @@ function onMessage(evt) {
     // writeToScreen(JSON.stringify(data.data));
     // console.log(data);
     if(data.code === 'STREAM'){
-      addData(encChart, data.data.tis, data.data);
-      addData(speChart, data.data.tis, data.data);
+      charts.forEach(chart => addData(chart, data.data.tis, data.data));
     } else if(data.code === 'CONFIG'){
       let config = JSON.stringify(data.data, undefined, 2);
       // console.log(config);
@@ -137,7 +121,6 @@ function keySend(element) {
     if(event.key == 'Enter'){
         event.preventDefault();
         sendText();
-        document.myform.inputtext.value = '';
     }
 }
 
@@ -149,6 +132,7 @@ window.addEventListener("load", init, false);
 
 function sendText() {
     doSend(document.myform.inputtext.value);
+    document.myform.inputtext.value = '';
 }
 
 function clearText() {
