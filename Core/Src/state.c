@@ -41,13 +41,13 @@ void sm_run(void) {
       double mean_th = config_get(CONFIG_ENTRY_TARGET_MEAN);
       double var_th  = config_get(CONFIG_ENTRY_TARGET_VAR);
 
-      if(mean < mean_th && var < var_th) {
+      int32_t count = (motor_getCount(M1) + motor_getCount(M2)) / 2;
+      speed_type_E speed_type = speed_fromCount(count);
+      control_setTarget(speed_fromType(speed_type) * config_get(CONFIG_ENTRY_MOTOR_SPEED));
+
+      if(speed_type == SPEED_TYPE_FINISH && mean < mean_th && var < var_th) {
         sm_setState(SM_STATE_TARGET_BRAKE);
       }
-
-      int32_t count = (motor_getCount(M1) + motor_getCount(M2)) / 2;
-      double speed = speed_fromCount(count);
-      control_setTarget(speed * config_get(CONFIG_ENTRY_MOTOR_SPEED));
 
       break;
     }
@@ -149,17 +149,23 @@ void sm_run(void) {
     {
       double mean = sensor_getMean();
       double var  = sensor_getVariance();
-      double mean_th = config_get(CONFIG_ENTRY_TARGET_MEAN);
-      double var_th  = config_get(CONFIG_ENTRY_TARGET_VAR);
+      double mean_th = config_get(CONFIG_ENTRY_RECORD_MEAN);
+      double var_th  = config_get(CONFIG_ENTRY_RECORD_VAR);
 
-      if(mean < mean_th && var < var_th) {
-        sm_setState(SM_STATE_STANDBY);
+      if(mean > mean_th && var < var_th) {
+        sm_setState(SM_STATE_RECORD_BRAKE);
       }
 
       control_setTarget(config_get(CONFIG_ENTRY_MOTOR_SPEED));
 
       break;
     }
+
+    case SM_STATE_RECORD_BRAKE:
+      if(control_state == CONTROL_STATE_NEUTRAL) {
+        sm_setState(SM_STATE_STANDBY);
+      }
+      break;
 
     default:
       break;
@@ -214,6 +220,7 @@ void sm_setState(sm_state_E state) {
 
       case SM_STATE_TARGET_BRAKE:
       case SM_STATE_HOME_BRAKE:
+      case SM_STATE_RECORD_BRAKE:
         control_setState(CONTROL_STATE_BRAKE);
         break;
 

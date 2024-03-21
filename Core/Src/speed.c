@@ -16,12 +16,6 @@ typedef enum {
   SPEED_STATE_RECORD_FAST,
 } speed_state_E;
 
-typedef enum {
-  SPEED_TYPE_FAST,
-  SPEED_TYPE_SLOW,
-  SPEED_TYPE_FINISH,
-} speed_type_E;
-
 typedef struct {
   int32_t count;
   speed_type_E type;
@@ -79,42 +73,53 @@ void speed_startRecord(void) {
 void speed_stopRecord(void) {
   speed_add_point(SPEED_TYPE_FINISH);
   speed_state = SPEED_STATE_NORMAL;
-
-  puts("result");
-  for(uint32_t i = 0; i < speed_num_points; i++) {
-    printf("%10lf %df\n", speed_points[i].count / MOTOR_COUNT_PER_MM, speed_points[i].type);
-  }
 }
 
-double speed_fromCount(int32_t count) {
-  double speed = 1.0;
+speed_type_E speed_fromCount(int32_t count) {
+  speed_type_E type = SPEED_TYPE_SLOW;
+
   for(uint32_t i = 0; i < speed_num_points; i++) {
     int32_t c = speed_points[i].count;
-    double  s = 1.0;
+    speed_type_E t = SPEED_TYPE_SLOW;
 
     switch(speed_points[i].type) {
       case SPEED_TYPE_FAST:
         c += MOTOR_MM_TO_COUNT(config_get(CONFIG_ENTRY_FAST_OFFSET));
-        s  = config_get(CONFIG_ENTRY_SPEED_FAST);
+        t  = SPEED_TYPE_FAST;
         break;
 
       case SPEED_TYPE_SLOW:
         c += MOTOR_MM_TO_COUNT(config_get(CONFIG_ENTRY_SLOW_OFFSET));
-        s  = config_get(CONFIG_ENTRY_SPEED_SLOW);
+        t  = SPEED_TYPE_SLOW;
         break;
 
       case SPEED_TYPE_FINISH:
         c += MOTOR_MM_TO_COUNT(config_get(CONFIG_ENTRY_FINISH_OFFSET));
-        s  = config_get(CONFIG_ENTRY_SPEED_FINISH);
+        t  = SPEED_TYPE_FINISH;
         break;
     }
 
     if(count >= c || i == 0) {
-      speed = s;
+      type = t;
     }
   }
 
-  return speed;
+  return type;
+}
+
+double speed_fromType(speed_type_E type) {
+  switch(type) {
+    case SPEED_TYPE_SLOW:
+      return config_get(CONFIG_ENTRY_SPEED_SLOW);
+
+    case SPEED_TYPE_FAST:
+      return config_get(CONFIG_ENTRY_SPEED_FAST);
+
+    case SPEED_TYPE_FINISH:
+      return config_get(CONFIG_ENTRY_SPEED_FINISH);
+  }
+
+  return config_get(CONFIG_ENTRY_SPEED_SLOW);
 }
 
 void speed_save(void) {
@@ -142,6 +147,7 @@ void speed_load(void) {
 static void speed_add_point(speed_type_E type) {
   if(speed_num_points < MAX_SPEED_POINTS) {
     int32_t count = (motor_getCount(M1) + motor_getCount(M2)) / 2;
+    printf("%10lf %d\n", count / MOTOR_COUNT_PER_MM, type);
     speed_points[speed_num_points].count = count;
     speed_points[speed_num_points].type = type;
     speed_num_points++;
