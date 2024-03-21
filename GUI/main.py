@@ -23,6 +23,7 @@ r.send('get')
 cnt = 0
 headers = [ "msl", "msr", "mtl", "mtr", "mel", "mer", "sta", "pd0", "pd1", "pd2", "pd3", "pd4", "pd5", "bav", "mag", ]
 vals = dict(zip(headers, [0.0] * len(headers)))
+Handler.callback = r.send
 while True:
     code, data = r.read()
     # print(data)

@@ -6,8 +6,9 @@ import threading
 
 class Handler(WebSocket):
     c_list = []
+    callback = lambda x: print(x)
     def handleMessage(self):
-        self.sendMessage(self.data)
+        Handler.callback(self.data)
 
     def handleConnected(self):
         print(self.address, 'connected')

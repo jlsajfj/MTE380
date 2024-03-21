@@ -101,6 +101,7 @@ class Robot:
             print(f"unknown start byte {start}")
 
     def send(self, cmd, ignore_ack=False):
+        print("sending",cmd)
         if not ignore_ack:
             self.send_lock.acquire()
         self.s.write(cmd.encode() + b"\n")
