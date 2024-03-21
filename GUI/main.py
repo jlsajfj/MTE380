@@ -14,12 +14,11 @@ c_map = {
 server = SimpleWebSocketServer('', 8000, Handler)
 t1 = threading.Thread(target=server.serveforever)
 t1.start()
-r = Robot('COM5')
+r = Robot('COM6')
 r.connect()
 r.send('stream 1', True)
 time.sleep(0.1)
 r.sync()
-r.send('get')
 cnt = 0
 headers = [ "msl", "msr", "mtl", "mtr", "mel", "mer", "sta", "pd0", "pd1", "pd2", "pd3", "pd4", "pd5", "bav", "mag", ]
 vals = dict(zip(headers, [0.0] * len(headers)))

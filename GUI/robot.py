@@ -99,6 +99,7 @@ class Robot:
 
         else:
             print(f"unknown start byte {start}")
+            self.sync()
 
     def send(self, cmd, ignore_ack=False):
         print("sending",cmd)

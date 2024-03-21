@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+  <meta charset="utf-8"/ >
+    < title > WebSocket Test </ title>
+    < script language="javascript"
+      src="main.js">
+    </ script>
+    < style >
+      
+    </ style>
+    < div class="grid-container">
+      < div class="header">
+        < form name="myform">
+          < tt id="output"> Output </ tt>
+          < br /  >
+            < br /  >
+              < textarea name="inputtext"
+                cols="50">
+              </ textarea>
+              < p /  >
+                < input type="button"
+                  name = sendButton value="Send"
+                  onClick="sendText();">
+                  < input type="button"
+                    name = clearButton value="Clear"
+                    onClick="clearText();">
+                    < input type="button"
+                      name = disconnectButton value="Disconnect"
+                      onClick="doDisconnect();">
+                      < input type="button"
+                        name = connectButton value="Connect"
+                        onClick="doConnect();">
+                      </ form>
+                    </ div>
+                    < div class="left"
+                      style="background-color:#aaa;">
+                      < canvas id="encChart">
+                      </ canvas>
+                    </ div>
+                    < div class="middle"
+                      style="background-color:#bbb;"> Column </ div>
+                    < div class="right"
+                      style="background-color:#ccc;"> Column </ div>
+                    < div class="footer">
+                      < p > Footer </ p>
+                    </ div>
+                  </ div>
+                  < script src="https://cdn.jsdelivr.net/npm/chart.js">
+                  </ script>
+                  < script >
+                    const canvas = document.getElementById('encChart');
+                    const data = {
+                    labels: [],
+                    datasets: [{
+                    label: 'mel',
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: [],
+                    }, {
+                    label: 'mer',
+                    backgroundColor: 'rgb(132, 255, 99)',
+                    borderColor: 'rgb(132, 255, 99)',
+                    data: [],
+                    }
+                    ]
+                    };
+                    const config = {
+                    type: 'line',
+                    data: data,
+                    options: {
+                    animation: false
+                    }
+                    };
+                    const encChart = new Chart(
+                    canvas,
+                    config);
+                    // function to update the chart
+                    function addData(chart, label, data) {
+                    if (chart.data.labels.length >= 100) {
+                    chart.data.labels.shift();
+                    }
+                    chart.data.labels.push(label);
+                    chart.data.datasets.forEach((dataset) => {
+                    if (dataset.data.length >= 100) {
+                    dataset.data.shift();
+                    }
+                    // console.log(dataset);
+                    dataset.data.push(data[dataset.label]);
+                    });
+                    chart.update();
+                    }
+                    function clearData(chart) {
+                    chart.data.labels = [];
+                    chart.data.datasets.forEach(dataset => {
+                    dataset.data = [];
+                    });
+                    }
+                  </ script>
+                </ html>
+                
