@@ -38,10 +38,10 @@
 
   function onMessage(evt)
   {
-    writeToScreen("response: " + evt.data + '\n');
     let data = JSON.parse(evt.data);
+    writeToScreen(JSON.stringify(data.data));
     // console.log(data);
-    addData(myChart, data.data.tis, data.data.mel);
+    addData(encChart, data.data.tis, data.data);
   }
 
   function onError(evt)
@@ -89,31 +89,22 @@
 <div id="output"></div>
 
 <form name="myform">
-<p>
-<textarea name="outputtext" rows="20" cols="50"></textarea>
-</p>
-<p>
+<textarea name="outputtext" rows="1" cols="150"></textarea>
 <textarea name="inputtext" cols="50"></textarea>
-</p>
-<p>
 <textarea name="url" cols="50"></textarea>
-</p>
-<p>
 <input type="button" name=sendButton value="Send" onClick="sendText();">
 <input type="button" name=clearButton value="Clear" onClick="clearText();">
 <input type="button" name=disconnectButton value="Disconnect" onClick="doDisconnect();">
 <input type="button" name=connectButton value="Connect" onClick="doConnect();">
-</p>
 
 
 </form>
 <div>
-  <canvas id="myChart"></canvas>
+  <canvas id="encChart"></canvas>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const canvas = document.getElementById('myChart');
-canvas.height = 75;
+const canvas = document.getElementById('encChart');
 
 const data = {
   labels: [],
@@ -122,7 +113,13 @@ const data = {
     backgroundColor: 'rgb(255, 99, 132)',
     borderColor: 'rgb(255, 99, 132)',
     data: [],
-  }]
+  },{
+    label: 'mer',
+    backgroundColor: 'rgb(132, 255, 99)',
+    borderColor: 'rgb(132, 255, 99)',
+    data: [],
+  }
+  ]
 };
 
 const config = {
@@ -133,7 +130,7 @@ const config = {
   }
 };
 
-const myChart = new Chart(
+const encChart = new Chart(
   canvas,
   config
 );
@@ -145,10 +142,11 @@ function addData(chart, label, data) {
   }
   chart.data.labels.push(label);
   chart.data.datasets.forEach((dataset) => {
-      if(dataset.data.length >= 100){
-        dataset.data.shift();
-      }
-    dataset.data.push(data);
+    if(dataset.data.length >= 100){
+      dataset.data.shift();
+    }
+    console.log(dataset);
+    dataset.data.push(data[dataset.label]);
   });
   chart.update();
 }
