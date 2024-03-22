@@ -2,20 +2,28 @@ from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
 import time
 from random import randint
 import threading
+from helper import Constants
+import json
 
 
 class Handler(WebSocket):
     c_list = []
     callback = lambda x: print(x)
+
     def handleMessage(self):
         Handler.callback(self.data)
 
     def handleConnected(self):
-        print(self.address, 'connected')
+        print(self.address, "connected")
+        packed_data = {
+            "code": "STATE_MAP",
+            "data": Constants.STATE_MAP,
+        }
+        self.sendMessage(json.dumps(packed_data))
         Handler.c_list.append(self)
 
     def handleClose(self):
-        print(self.address, 'closed')
+        print(self.address, "closed")
         Handler.c_list.remove(self)
 
     @classmethod
@@ -23,15 +31,17 @@ class Handler(WebSocket):
         for c in cls.c_list:
             c.sendMessage(msg)
 
+
 def main():
-    server = SimpleWebSocketServer('', 8000, Handler)
+    server = SimpleWebSocketServer("", 8000, Handler)
     t1 = threading.Thread(target=server.serveforever)
     t1.start()
-    input('press enter to continue')
+    input("press enter to continue")
     for i in range(20):
-        Handler.broadcast(str({'cpu': {'name': i, 'value': randint(0,99)}}))
+        Handler.broadcast(str({"cpu": {"name": i, "value": randint(0, 99)}}))
         time.sleep(0.1)
     t1.join()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

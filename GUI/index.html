@@ -5,21 +5,28 @@
     <link rel="stylesheet" href="main.css">
   </head>
   <body>
-    <div class="header">
-      <form name="myform">
-        <tt id="output"> Output </tt>
-        <br />
-        <input type="text" name="inputtext" placeholder="Command" class="cmd" onkeydown="keySend(this)" />
-        <p />
-        <input type="button" name = sendButton value="Send" onClick="sendText();">
-        <input type="button" name = clearButton value="Clear" onClick="clearText();">
-        <input type="button" name = disconnectButton value="Disconnect" onClick="doDisconnect();">
-        <input type="button" name = connectButton value="Connect" onClick="doConnect();">
-      </form>
+    <div class="grid-container">
+      <div class="header">
+        <form name="myform">
+          <tt id="output"> Output </tt>
+          <br />
+          <input type="text" name="inputtext" placeholder="Command" class="cmd" onkeydown="keySend(this)" />
+          <p />
+          <input type="button" name = sendButton value="Send" onClick="sendText();">
+          <input type="button" name = clearButton value="Clear" onClick="clearText();">
+          <input type="button" name = disconnectButton value="Disconnect" onClick="doDisconnect();">
+          <input type="button" name = connectButton value="Connect" onClick="doConnect();">
+        </form>
+      </div>
+      <div id="timer">
+      <tt id="timer-text">0.000</tt>
+      </div>
     </div>
     <div class="grid-container">
       <div class="left">
         <canvas id="encChart">
+        </canvas>
+        <canvas id="bavChart">
         </canvas>
       </div>
       <div class="middle">
@@ -33,6 +40,7 @@
     </div>
     <pre id="config"></pre>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script language="javascript" src="chart_setup.js"></script>
     <script language="javascript" src="main.js"></script>
   </body>
 </html>

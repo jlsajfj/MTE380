@@ -8,6 +8,12 @@ body {
   text-align: center;
 }
 
+#timer {
+  padding: 30px;
+  text-align: center;
+  font-size: 25px;
+}
+
 /* The grid container */
 .grid-container {
   display: flex;

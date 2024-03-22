@@ -1,59 +1,10 @@
-const C_RED = '#dc322f';
-const C_ORANGE = '#b58900';
-const C_YELLOW = '#859900';
-const C_GREEN = '#268bd2';
-const C_BLUE = '#6c71c4';
-const C_PURPLE = '#d33682';
-const COLORS = [C_RED, C_ORANGE, C_YELLOW, C_GREEN, C_BLUE, C_PURPLE];
-
-let charts = [];
-function buildChart(name, inputs){
-    let canvas = document.getElementById(name);
-    let d = inputs.map((l, i) => {
-        return {
-            label: l,
-            backgroundColor: COLORS[i % 6],
-            borderColor: COLORS[i % 6],
-            data:[]
-        };
-    });
-    let config = {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: d,
-            },
-            options: {
-                animation: false,
-                scales: {
-                    x: {
-                        ticks: {
-                            color: "#839496",
-                        },
-                        grid: {
-                            color: "#839496",
-                        },
-                    },
-                    y: {
-                        ticks: {
-                            color: "#839496",
-                        },
-                        grid: {
-                            color: "#839496",
-                        },
-                    },
-                },
-                color: '#839496',
-            },
-        };
-    let chart = new Chart(canvas, config);
-    charts.push(chart);
-}
-buildChart('speChartL', ['mtl', 'msl']);
-buildChart('speChartR', ['mtr', 'msr']);
-buildChart('encChart', ['mel', 'mer']);
-
-let wurl = 'ws://localhost:8000/'
+let state = "STANDBY";
+let wurl = 'ws://localhost:8000/';
+let start_time = 0;
+let end_time = 0;
+let running = false;
+let current_data = {};
+let state_map = {1: "STANDBY"};
 
 function init() {
     if (window.location.hostname === "bot.joseph.ma") {
@@ -61,6 +12,23 @@ function init() {
     }
     document.myform.disconnectButton.disabled = true;
     doConnect();
+}
+
+function updateState(c_new_state) {
+    new_state = state_map[c_new_state];
+    if(new_state !== state) {
+        state = new_state;
+        if(state === "UNHOOK") {
+            start_time = current_data.tis;
+            running = true;
+        } else if(state === "TARGET_BREAK" || state === "STANDBY" || state === "AIM") {
+            running = false;
+        }
+    }
+    if(running){
+        end_time = current_data.tis;
+        document.getElementById("timer-text").innerText = (end_time - start_time).toFixed(3);
+    }
 }
 
 function doConnect() {
@@ -96,12 +64,20 @@ function onMessage(evt) {
     // writeToScreen(JSON.stringify(data.data));
     // console.log(data);
     if(data.code === 'STREAM'){
-      charts.forEach(chart => addData(chart, data.data.tis, data.data));
+      current_data = data.data;
+      current_data.tis /= 1000;
+      // console.log(current_data.sta);
+      updateCharts();
+      // charts.forEach(chart => addData(chart, data.data.tis, data.data));
+      updateState(data.data.sta);
     } else if(data.code === 'CONFIG'){
       let config = JSON.stringify(data.data, undefined, 2);
       // console.log(config);
       // document.getElementById("config").textContent = JSON.stringify(data.data,undefined, 2);
       document.getElementById('config').textContent = config;
+    } else if(data.code === "STATE_MAP") {
+        state_map = data.data;
+        console.log(state_map);
     }
 }
 
@@ -141,6 +117,23 @@ function clearText() {
 
 function doDisconnect() {
     websocket.close();
+}
+
+function updateCharts() {
+    charts.forEach( chart => {
+        if (chart.data.labels.length >= 100) {
+            chart.data.labels.shift();
+        }
+        chart.data.labels.push(current_data.tis);
+        chart.data.datasets.forEach((dataset) => {
+            if (dataset.data.length >= 100) {
+                dataset.data.shift();
+            }
+            // console.log(dataset);
+            dataset.data.push(current_data[dataset.label]);
+        });
+        chart.update();
+    });
 }
 
 // function to update the chart
