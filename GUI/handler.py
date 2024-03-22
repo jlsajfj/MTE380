@@ -8,7 +8,7 @@ import json
 
 class Handler(WebSocket):
     c_list = []
-    callback = lambda x: print(x)
+    callback = print
 
     def handleMessage(self):
         Handler.callback(self.data)

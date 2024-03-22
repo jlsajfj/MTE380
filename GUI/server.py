@@ -1,7 +1,7 @@
 from handler import Handler
 from robot import Robot
 import threading
-from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
+from SimpleWebSocketServer import SimpleWebSocketServer
 import sys
 import time
 import json

@@ -2,7 +2,6 @@ import serial
 import struct
 import sys
 import threading
-import time
 from helper import Constants
 
 
@@ -18,7 +17,7 @@ class Robot:
         if con:
             self.connect()
 
-    def bug(val):
+    def bug(self, val):
         self.debug = val
 
     def connect(self) -> bool:
