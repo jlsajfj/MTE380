@@ -67,7 +67,7 @@ while True:
 
                 vals["tis"] = data["tis"]
                 vals["sta"] = data["sta"]
-                vals["bav"] *= 9.0/256
+                vals["bav"] *= 9.0 / 256
                 send(code, vals)
                 cnt = 0
                 vals = dict(zip(Constants.HEADERS, [0.0] * len(Constants.HEADERS)))
