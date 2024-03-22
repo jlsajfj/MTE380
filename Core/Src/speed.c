@@ -144,6 +144,10 @@ void speed_load(void) {
   }
 }
 
+void speed_reset(void) {
+  speed_num_points = 0;
+}
+
 static void speed_add_point(speed_type_E type) {
   if(speed_num_points < MAX_SPEED_POINTS) {
     int32_t count = (motor_getCount(M1) + motor_getCount(M2)) / 2;

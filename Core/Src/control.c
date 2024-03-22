@@ -174,7 +174,7 @@ void control_run(void) {
 
       bool finished = true;
       for(motor_E motor = M1; motor <= M2; motor++) {
-        if(abs(target * ratios[motor]) > abs(motor_getCount(motor))) {
+        if(fabs(target * ratios[motor]) > abs(motor_getCount(motor))) {
           motor_setSpeed(motor, speed * ratios[motor]);
           finished = false;
         } else {
@@ -196,10 +196,12 @@ void control_run(void) {
   control_reset = false;
 
   if(debug) {
-    printf("%ld %.4lf %.4lf\n",
+    printf("%10ld %10ld %10ld %10.4f %10.4f\n",
       HAL_GetTick(),
-      sensor_getMean(),
-      sensor_getVariance()
+      motor_getCount(M1),
+      motor_getCount(M2),
+      motor_getSpeed(M1),
+      motor_getSpeed(M2)
     );
   }
 }

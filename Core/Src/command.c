@@ -178,6 +178,9 @@ void command_run(void) {
     } else if(MATCH_CMD("reset")) {
       NVIC_SystemReset();
 
+    } else if(MATCH_CMD("reset_speed")) {
+      speed_reset();
+
     } else if(MATCH_CMD_SD("set")) {
       config_setByName(sarg, darg);
       double value = config_getByName(sarg);

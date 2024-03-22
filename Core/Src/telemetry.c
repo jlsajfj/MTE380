@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define SYNC_COUNT 50
+#define SYNC_COUNT 500
 #define STREAM_INTERVAL 5
 
 const char SB_ACK    = 0x06;
@@ -104,6 +104,9 @@ void tele_respond(bool ack) {
 
 void tele_setEnabled(bool enable) {
   tele_enabled = enable;
+  if(enable) {
+    tele_sync();
+  }
 }
 
 bool tele_isEnabled(void) {

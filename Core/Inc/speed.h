@@ -20,5 +20,6 @@ double speed_fromType(speed_type_E type);
 
 void speed_save(void);
 void speed_load(void);
+void speed_reset(void);
 
 #endif
