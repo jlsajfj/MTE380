@@ -1,5 +1,6 @@
 import re
 import os
+from collections import deque
 
 
 class Constants:
@@ -18,6 +19,17 @@ class Constants:
         SB_STREAM: "STREAM",
         SB_CONFIG: "CONFIG",
     }
+
+    FILTERS = {
+        "msl": 5,
+        "msr": 5,
+        "mtl": 5,
+        "mtr": 5,
+        "mel": 5,
+        "mer": 5,
+        "bav": 50,
+    }
+
     HEADERS = [
         "msl",
         "msr",
@@ -33,6 +45,7 @@ class Constants:
         "pd5",
         "bav",
         "mag",
+        "tis",
     ]
 
     _STATE_NAMES = None
@@ -77,3 +90,23 @@ class Constants:
 
         _STATE_MAP = dict(enumerate(cls.STATE_NAMES))
         return _STATE_MAP
+
+
+class Filters:
+    def __init__(self):
+        self.vals = dict(zip(Constants.HEADERS, [0] * len(Constants.HEADERS)))
+        self.caches = {}
+        for f in Constants.FILTERS:
+            self.caches[f] = [deque([0] * Constants.FILTERS[f]), 0]
+
+    def process(self, new_input):
+        self.vals = new_input
+
+        for f in Constants.FILTERS:
+            self.caches[f][1] -= self.caches[f][0].popleft()
+            self.caches[f][1] += new_input[f]
+            self.caches[f][0].append(new_input[f])
+            self.vals[f] = self.caches[f][1] / Constants.FILTERS[f]
+
+    def get(self):
+        return self.vals

@@ -12,14 +12,26 @@
           <br />
           <input type="text" name="inputtext" placeholder="Command" class="cmd" onkeydown="keySend(this)" />
           <p />
-          <input type="button" name = sendButton value="Send" onClick="sendText();">
-          <input type="button" name = clearButton value="Clear" onClick="clearText();">
-          <input type="button" name = disconnectButton value="Disconnect" onClick="doDisconnect();">
-          <input type="button" name = connectButton value="Connect" onClick="doConnect();">
+          <input type="button" name=sendButton value="Send" onClick="sendText();">
+          <input type="button" name=clearButton value="Clear" onClick="clearText();">
+          <input type="button" name=disconnectButton value="Disconnect" onClick="doDisconnect();">
+          <input type="button" name=connectButton value="Connect" onClick="doConnect();">
         </form>
       </div>
+      <div class="remote">
+        <div class="button-row">
+          <input type="button" name=startButton value="Start" onClick="doSend('start');">
+          <input type="button" name=lockKicker value="Lock Kicker" onClick="doSend('kick l');">
+          <input type="button" name=lockCatcher value="Lock Catcher" onClick="doSend('hook l');">
+        </div>
+        <div class="button-row">
+          <input type="button" name=stopButton value="Stop" onClick="doSend('stop');">
+          <input type="button" name=unlockKicker value="Unlock Kicker" onClick="doSend('kick u');">
+          <input type="button" name=unlockCatcher value="Unlock Catcher" onClick="doSend('hook u');">
+        </div>
+      </div>
       <div id="timer">
-      <tt id="timer-text">0.000</tt>
+        <tt id="timer-text">0.000</tt>
       </div>
     </div>
     <div class="grid-container">

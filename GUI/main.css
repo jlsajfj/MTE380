@@ -8,6 +8,25 @@ body {
   text-align: center;
 }
 
+.remote {
+  padding: 30px;
+  text-align: center;
+}
+
+.button-row {
+  margin: 5px;
+}
+
+input[type="button"]{
+  padding: 5px 15px;
+  color: #839496;
+  background-color: #073642;
+}
+
+input[type="button"]:disabled{
+  background-color: #586e75;
+}
+
 #timer {
   padding: 30px;
   text-align: center;

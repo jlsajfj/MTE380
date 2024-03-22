@@ -5,7 +5,7 @@ from SimpleWebSocketServer import SimpleWebSocketServer
 import sys
 import time
 import json
-from helper import Constants
+from helper import Constants, Filters
 
 server = SimpleWebSocketServer("", 8000, Handler)
 t1 = threading.Thread(target=server.serveforever)
@@ -19,10 +19,9 @@ else:
 r.connect()
 r.send("stream 1", True)
 time.sleep(0.1)
-r.sync()
+r.send("sync")
 
 cnt = 0
-vals = dict(zip(Constants.HEADERS, [0.0] * len(Constants.HEADERS)))
 Handler.callback = r.send
 
 
@@ -30,6 +29,7 @@ def runGet():
     while True:
         r.send("get")
         time.sleep(1)
+        print(time.time())
 
 
 t2 = threading.Thread(target=runGet)
@@ -47,30 +47,23 @@ def send(code, data):
     Handler.broadcast(json.dumps(packed_data))
 
 
+f = Filters()
 while True:
     code, data = r.read()
     # print(data)
-    # print(vals)
     if code not in (Constants.SB_ACK, Constants.SB_NACK):
         if code == Constants.SB_STREAM:
-            if data["sta"] != p_state:
-                send(code, data)
-                p_state = data["sta"]
+            data["bav"] *= 9 / 256
+            f.process(data)
 
-            for h in Constants.HEADERS:
-                vals[h] += data[h]
+            if data["sta"] != p_state:
+                send(code, f.get())
+                p_state = data["sta"]
 
             cnt += 1
             if cnt >= 10:
-                for h in Constants.HEADERS:
-                    vals[h] /= 10
-
-                vals["tis"] = data["tis"]
-                vals["sta"] = data["sta"]
-                vals["bav"] *= 9.0 / 256
-                send(code, vals)
+                send(code, f.get())
                 cnt = 0
-                vals = dict(zip(Constants.HEADERS, [0.0] * len(Constants.HEADERS)))
         else:
             send(code, data)
 

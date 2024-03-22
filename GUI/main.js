@@ -48,13 +48,13 @@ function doConnect() {
 }
 
 function onOpen(evt) {
-    writeToScreen("connected\n");
+    writeToScreen("connected");
     document.myform.connectButton.disabled = true;
     document.myform.disconnectButton.disabled = false;
 }
 
 function onClose(evt) {
-    writeToScreen("disconnected\n");
+    writeToScreen("disconnected");
     document.myform.connectButton.disabled = false;
     document.myform.disconnectButton.disabled = true;
 }
@@ -82,14 +82,14 @@ function onMessage(evt) {
 }
 
 function onError(evt) {
-    writeToScreen('error: ' + evt.data + '\n');
+    writeToScreen('error: ' + evt.data);
     websocket.close();
     document.myform.connectButton.disabled = false;
     document.myform.disconnectButton.disabled = true;
 }
 
 function doSend(message) {
-    writeToScreen("sent: " + message + '\n');
+    writeToScreen("sent: " + message);
     websocket.send(message);
 }
 

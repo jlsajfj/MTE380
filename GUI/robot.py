@@ -33,6 +33,7 @@ class Robot:
             print("reading")
 
         start = self.s.read(1)[0]
+        # print(self.sync_cnt)
 
         if start == Constants.SB_ACK or start == Constants.SB_NACK:
             self.sync_cnt += 1
@@ -93,12 +94,13 @@ class Robot:
             self.sync_cnt = 0
 
             print(f"unknown start byte {start}")
-            self.send("sync")
+            self.send("stream 1", True)
+            return Constants.SB_NACK, None
 
     def send(self, cmd, ignore_ack=False):
         print("sending", cmd)
         if not ignore_ack:
-            self.send_lock.acquire()
+            self.send_lock.acquire(timeout=5)
         self.s.write(cmd.encode() + b"\n")
 
     def disconnect(self):
