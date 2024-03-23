@@ -10,14 +10,15 @@ import numpy as np
 from robot import Robot
 from helper import Constants
 
-if(len(sys.argv) < 2):
+if len(sys.argv) < 2:
     print("input serial port")
     sys.exit(1)
 
 recording = False
 data_t = []
 data_speed = []
- 
+
+
 def run():
     global data_t, data_speed, recording
 
@@ -26,29 +27,30 @@ def run():
 
     recording = True
 
-    robot.send(f'set sp {kp.get()}')
-    robot.send(f'set si {ki.get()}')
-    robot.send(f'set sd {kd.get()}')
-    robot.send('set sa 0.9')
-    robot.send('speed 6')
+    robot.send(f"set sp {kp.get()}")
+    robot.send(f"set si {ki.get()}")
+    robot.send(f"set sd {kd.get()}")
+    robot.send("set sa 0.9")
+    robot.send("speed 6")
 
     time.sleep(1)
 
-    robot.send('stop')
+    robot.send("stop")
 
     recording = False
 
-    ntime  = np.array(data_t)
+    ntime = np.array(data_t)
     nspeed = np.array(data_speed)
 
-    time0 = ntime[(nspeed>0).argmax(axis=0)]
+    time0 = ntime[(nspeed > 0).argmax(axis=0)]
     ntime -= time0
 
     ax.clear()
     ax.plot(ntime, nspeed)
     ax.relim()
- 
+
     canvas.draw()
+
 
 # {{{ GUI
 window = Tk()
@@ -57,15 +59,15 @@ window.title("Control Tuner")
 frame = Frame(window)
 
 run_btn = Button(frame, text="Run", command=run)
-save_btn = Button(frame, text="Save", command=lambda: robot.send('save'))
- 
+save_btn = Button(frame, text="Save", command=lambda: robot.send("save"))
+
 stack = Frame(frame)
 
 spinargs = {
-    'master': stack,
-    'from_': 0,
-    'to': 5,
-    'increment': 0.01,
+    "master": stack,
+    "from_": 0,
+    "to": 5,
+    "increment": 0.01,
 }
 
 kp = DoubleVar(value=0)
@@ -90,19 +92,21 @@ fig = Figure()
 ax = fig.add_subplot()
 
 canvas = FigureCanvasTkAgg(fig, window)
-canvas.get_tk_widget().grid(row=1, column=0, sticky='nsew', padx=10, pady=10)
+canvas.get_tk_widget().grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
 
 window.grid_rowconfigure(1, weight=1)
 window.grid_columnconfigure(0, weight=1)
- 
+
 # }}}
+
 
 def read_thread():
     while robot.s is not None:
         start, data = robot.read()
         if recording and start == Constants.SB_STREAM:
-            data_t.append(data['tis'])
-            data_speed.append(data['msl'])
+            data_t.append(data["tis"])
+            data_speed.append(data["msl"])
+
 
 robot = Robot(sys.argv[1], True)
 robot.send("get")
@@ -111,9 +115,9 @@ while True:
     start, data = robot.read()
 
     if start == Constants.SB_CONFIG:
-        kp.set(data['sp'])
-        ki.set(data['si'])
-        kd.set(data['sd'])
+        kp.set(data["sp"])
+        ki.set(data["si"])
+        kd.set(data["sd"])
         break
 
 rt = Thread(target=read_thread)

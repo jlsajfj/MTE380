@@ -8,7 +8,7 @@ from helper import Constants
 
 
 class Robot:
-    State = Enum('DecoderState', ['SYNCING', 'START', 'STREAM', 'CONFIG'])
+    State = Enum("DecoderState", ["SYNCING", "START", "STREAM", "CONFIG"])
 
     def __init__(self, dn: str = "COM4", con: bool = False):
         self.config_names = Constants.CONFIG_NAMES
@@ -18,6 +18,7 @@ class Robot:
         self.send_lock = threading.Lock()
         self.debug = False
         self.state = Robot.State.SYNCING
+        self.cmd_ack = False
 
         if con:
             self.connect()
@@ -32,10 +33,10 @@ class Robot:
         self.s = serial.Serial(self.dn, 115200)
         self.state = Robot.State.SYNCING
         print("bluetooth device has been connected")
-        self.s.write(b'\n')
+        self.s.write(b"\n")
 
         # first sync
-        self.send('stream 1', True)
+        self.send("stream 1", True)
         self.read()
 
     def read(self):  # https://stackoverflow.com/a/7155595
@@ -69,7 +70,11 @@ class Robot:
 
                 if start == Constants.SB_ACK or start == Constants.SB_NACK:
                     if self.send_lock.locked():
+                        if start == Constants.SB_ACK:
+                            self.cmd_ack = True
+
                         self.send_lock.release()
+
                     return start, None
 
                 elif start == Constants.SB_STREAM:
@@ -83,7 +88,7 @@ class Robot:
 
                     if self.send_lock.locked():
                         self.send_lock.release()
-                    self.send('stream 1', True)
+                    self.send("stream 1", True)
                     self.state = Robot.State.SYNCING
 
             elif self.state == Robot.State.STREAM:
@@ -134,11 +139,17 @@ class Robot:
         self.state = Robot.State.SYNCING
         return Constants.SB_NACK, None
 
-    def send(self, cmd, ignore_ack=False, timeout=1):
+    def send(self, cmd: str, ignore_ack: bool = False, timeout: float = 1) -> bool:
         print("sending", cmd)
         self.s.write(cmd.encode() + b"\n")
+
         if not ignore_ack:
+            self.cmd_ack = False
             self.send_lock.acquire(timeout=timeout)
+
+            return self.cmd_ack
+
+        return True
 
     def disconnect(self):
         print("disconnecting")

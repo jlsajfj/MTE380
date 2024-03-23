@@ -23,6 +23,7 @@ Handler.callback = r.send
 
 p_state = None
 
+
 def send(code, data):
     packed_data = {
         "code": Constants.CODE_MAP[code],
