@@ -18,7 +18,16 @@ else:
 r.connect()
 
 cnt = 0
-Handler.callback = r.send
+
+
+def send_robot(message: str) -> None:
+    if r.send(message):
+        print("success")
+    else:
+        print("failed")
+
+
+Handler.callback = send_robot
 
 p_state = None
 
