@@ -63,18 +63,22 @@ function onMessage(evt) {
     let data = JSON.parse(evt.data);
     // writeToScreen(JSON.stringify(data.data));
     // console.log(data);
-    if(data.code === 'STREAM'){
-      current_data = data.data;
-      current_data.tis /= 1000;
-      // console.log(current_data.sta);
-      updateCharts();
-      // charts.forEach(chart => addData(chart, data.data.tis, data.data));
-      updateState(data.data.sta);
+    if(data.code === 'ACK'){
+        writeToScreen('<span style="color: lightgreen">ack</span>')
+    } else if(data.code === 'NACK') {
+        writeToScreen('<span style="color: red">nack</span>')
+    } else if(data.code === 'STREAM'){
+        current_data = data.data;
+        current_data.tis /= 1000;
+        // console.log(current_data.sta);
+        updateCharts();
+        // charts.forEach(chart => addData(chart, data.data.tis, data.data));
+        updateState(data.data.sta);
     } else if(data.code === 'CONFIG'){
-      let config = JSON.stringify(data.data, undefined, 2);
-      // console.log(config);
-      // document.getElementById("config").textContent = JSON.stringify(data.data,undefined, 2);
-      document.getElementById('config').textContent = config;
+        let config = JSON.stringify(data.data, undefined, 2);
+        // console.log(config);
+        // document.getElementById("config").textContent = JSON.stringify(data.data,undefined, 2);
+        document.getElementById('config').textContent = config;
     } else if(data.code === "STATE_MAP") {
         state_map = data.data;
         console.log(state_map);
@@ -101,7 +105,7 @@ function keySend(element) {
 }
 
 function writeToScreen(message) {
-    document.getElementById('output').innerText = message
+    document.getElementById('output').innerHTML = message
 }
 
 window.addEventListener("load", init, false);
