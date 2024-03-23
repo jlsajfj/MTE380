@@ -14,16 +14,19 @@ if len(sys.argv) < 2:
     print("input serial port")
     sys.exit(1)
 
+
 recording = False
 data_t = []
-data_speed = []
+data_speed1 = []
+data_speed2 = []
 
 
 def run():
-    global data_t, data_speed, recording
+    global data_t, data_speed1, data_speed2, recording
 
     data_t = []
-    data_speed = []
+    data_speed1 = []
+    data_speed2 = []
 
     recording = True
 
@@ -40,13 +43,15 @@ def run():
     recording = False
 
     ntime = np.array(data_t)
-    nspeed = np.array(data_speed)
+    nspeed1 = np.array(data_speed1)
+    nspeed2 = np.array(data_speed2)
 
-    time0 = ntime[(nspeed > 0).argmax(axis=0)]
+    time0 = ntime[(nspeed1 > 0).argmax(axis=0)]
     ntime -= time0
 
     ax.clear()
-    ax.plot(ntime, nspeed)
+    ax.plot(ntime, nspeed1)
+    ax.plot(ntime, nspeed2)
     ax.relim()
 
     canvas.draw()
@@ -105,7 +110,8 @@ def read_thread():
         start, data = robot.read()
         if recording and start == Constants.SB_STREAM:
             data_t.append(data["tis"])
-            data_speed.append(data["msl"])
+            data_speed1.append(data["msl"])
+            data_speed2.append(data["msr"])
 
 
 robot = Robot(sys.argv[1], True)
