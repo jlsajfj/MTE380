@@ -15,6 +15,7 @@
 #define SYNC_COUNT 50
 #define STREAM_INTERVAL 5
 
+const char SB_SYNC   = 0x05;
 const char SB_ACK    = 0x06;
 const char SB_NACK   = 0x07;
 const char SB_STREAM = 0x0E;
@@ -36,14 +37,14 @@ static tele_stream_S tele_stream;
 static bool tele_enabled;
 static bool tele_dump;
 
-static uint16_t tele_ack_count;
+static uint16_t tele_sync_count;
 static uint16_t tele_stream_count;
 
 void tele_init(void) {
   memset(&tele_stream, 0, sizeof(tele_stream_S));
 
   tele_enabled = false;
-  tele_ack_count = 0;
+  tele_sync_count = 0;
   tele_stream_count = 0;
   tele_dump = false;
 }
@@ -51,9 +52,9 @@ void tele_init(void) {
 void tele_run(void) {
   if(!tele_enabled) return;
 
-  if(tele_ack_count > 0) {
-    _write(2, &SB_ACK, 1);
-    tele_ack_count--;
+  if(tele_sync_count > 0) {
+    _write(2, &SB_SYNC, 1);
+    tele_sync_count--;
     return;
   }
 
@@ -95,7 +96,7 @@ void tele_dumpConfig(void) {
 }
 
 void tele_sync(void) {
-  tele_ack_count = SYNC_COUNT;
+  tele_sync_count = SYNC_COUNT;
 }
 
 void tele_respond(bool ack) {

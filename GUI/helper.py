@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 
 class Constants:
     SYNC_COUNT: int = 10
+    SB_SYNC: int = 0x05
     SB_ACK: int = 0x06
     SB_NACK: int = 0x07
     SB_STREAM: int = 0x0E

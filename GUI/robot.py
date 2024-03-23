@@ -15,7 +15,7 @@ class Robot:
         self.dn = dn
         self.s = None
         self.sw = None
-        self.send_lock = threading.Lock()
+        self.send_lock = threading.Condition()
         self.debug = False
         self.state = Robot.State.SYNCING
         self.cmd_ack = False
@@ -52,7 +52,7 @@ class Robot:
                     continue
 
                 ack = self.s.read(1)[0]
-                if ack == Constants.SB_ACK:
+                if ack == Constants.SB_SYNC:
                     sync_cnt += 1
                 else:
                     sync_cnt = 0
@@ -68,12 +68,20 @@ class Robot:
 
                 start = self.s.read(1)[0]
 
-                if start == Constants.SB_ACK or start == Constants.SB_NACK:
-                    if self.send_lock.locked():
-                        if start == Constants.SB_ACK:
-                            self.cmd_ack = True
+                if start == Constants.SB_SYNC:
+                    pass
 
-                        self.send_lock.release()
+                elif start == Constants.SB_ACK:
+                    with self.send_lock:
+                        self.cmd_ack = True
+                        self.send_lock.notify()
+
+                    return start, None
+
+                elif start == Constants.SB_NACK:
+                    with self.send_lock:
+                        self.cmd_ack = False
+                        self.send_lock.notify()
 
                     return start, None
 
@@ -86,8 +94,10 @@ class Robot:
                 else:
                     print(f"unknown start byte {start}")
 
-                    if self.send_lock.locked():
-                        self.send_lock.release()
+                    with self.send_lock:
+                        self.cmd_ack = False
+                        self.send_lock.notify()
+
                     self.send("stream 1", True)
                     self.state = Robot.State.SYNCING
 
@@ -144,8 +154,9 @@ class Robot:
         self.s.write(cmd.encode() + b"\n")
 
         if not ignore_ack:
-            self.cmd_ack = False
-            self.send_lock.acquire(timeout=timeout)
+            with self.send_lock:
+                self.cmd_ack = False
+                self.send_lock.wait(timeout=timeout)
 
             return self.cmd_ack
 

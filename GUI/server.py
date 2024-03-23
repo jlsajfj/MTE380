@@ -42,10 +42,10 @@ def send(code, data):
 
 
 f = Filters()
-while True:
-    code, data = r.read()
-    # print(data)
-    if code not in (Constants.SB_ACK, Constants.SB_NACK):
+try:
+    while True:
+        code, data = r.read()
+        # print(data)
         if code == Constants.SB_STREAM:
             data["bav"] *= 9 / 256
             f.process(data)
@@ -60,6 +60,11 @@ while True:
                 cnt = 0
         else:
             send(code, data)
+except KeyboardInterrupt:
+    pass
+
+server.close()
+t1.join()
 
 r.send("stream 0")
 r.disconnect()
