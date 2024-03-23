@@ -4,7 +4,7 @@ from collections import deque
 
 
 class Constants:
-    SYNC_COUNT = 100
+    SYNC_COUNT = 10
     SB_ACK = 0x06
     SB_NACK = 0x07
     SB_STREAM = 0x0E

@@ -234,7 +234,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
       _write(1, erase, 2);
       rx_idx--;
     }
-  } else if(rx_char == '\r' || rx_char == '\n') {
+  } else if((rx_char == '\r' || rx_char == '\n') && !rx_pend) {
     if(rx_idx > 0) {
       rx_buff[rx_idx] = '\0';
       rx_len = rx_idx;

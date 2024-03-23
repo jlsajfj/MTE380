@@ -176,10 +176,12 @@ void uart_setTxFD(int fd) {
 
 void uart_flush(void) {
   if(uart_dma_ready && uart_buff_len > 0) {
-    uart_dma_ready = false;
-    HAL_UART_Transmit_DMA(&huart2, uart_buff + uart_buff_bank * UART_BUFF_SIZE, uart_buff_len);
+    uint8_t bank = uart_buff_bank;
+    uint16_t len = uart_buff_len;
     uart_buff_bank ^= 1;
     uart_buff_len = 0;
+    uart_dma_ready = false;
+    HAL_UART_Transmit_DMA(&huart2, uart_buff + bank * UART_BUFF_SIZE, len);
   }
 }
 

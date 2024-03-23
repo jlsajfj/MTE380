@@ -17,26 +17,11 @@ else:
     r = Robot()
 
 r.connect()
-r.send("stream 1", True)
-time.sleep(0.1)
-r.send("sync")
 
 cnt = 0
 Handler.callback = r.send
 
-
-def runGet():
-    while True:
-        # r.send("get")
-        print(time.time())
-        time.sleep(1)
-
-
-t2 = threading.Thread(target=runGet)
-t2.start()
-
 p_state = None
-
 
 def send(code, data):
     packed_data = {

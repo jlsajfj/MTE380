@@ -2,6 +2,8 @@ import serial
 import struct
 import sys
 import threading
+import time
+from enum import Enum
 from helper import Constants
 
 
@@ -13,7 +15,7 @@ class Robot:
         self.sw = None
         self.send_lock = threading.Lock()
         self.debug = False
-        self.sync_cnt = 0
+        self.synced = False
         if con:
             self.connect()
 
@@ -25,83 +27,114 @@ class Robot:
             return
         print("connecting to device")
         self.s = serial.Serial(self.dn, 115200)
-        self.s.write(b"\n")
+        self.synced = False
         print("bluetooth device has been connected")
+
+        self.s.write(b'\n')
+        self.read() # first sync
 
     def read(self):  # https://stackoverflow.com/a/7155595
         if self.debug:
             print("reading")
 
-        start = self.s.read(1)[0]
-        # print(self.sync_cnt)
+        State = Enum('DecoderState', ['SYNCING', 'START', 'STREAM', 'CONFIG'])
+        state = State.START
+        sync_cnt = 0
 
-        if start == Constants.SB_ACK or start == Constants.SB_NACK:
-            self.sync_cnt += 1
-            if self.sync_cnt >= Constants.SYNC_COUNT:
-                self.s.reset_input_buffer()
-                self.sync_cnt = 0
+        if not self.synced:
+            self.send('stream 1', True)
+            state = State.SYNCING
 
-            if self.send_lock.locked():
-                self.send_lock.release()
+        while self.s is not None:
+            if state == State.SYNCING:
+                if self.s.in_waiting < 1:
+                    time.sleep(0.1)
+                    continue
 
-            return start, None
-        elif start == Constants.SB_STREAM:
-            self.sync_cnt = 0
+                ack = self.s.read(1)[0]
+                if ack == Constants.SB_ACK:
+                    sync_cnt += 1
+                else:
+                    sync_cnt = 0
 
-            if self.debug:
-                print("stream")
+                if sync_cnt >= Constants.SYNC_COUNT:
+                    print("synced")
+                    self.synced = True
+                    state = State.START
 
-            data = self.s.read(25)
-            data_stream = dict(
-                zip(
-                    [
-                        "msl",
-                        "msr",
-                        "mtl",
-                        "mtr",
-                        "mel",
-                        "mer",
-                        "sta",
-                        "pd0",
-                        "pd1",
-                        "pd2",
-                        "pd3",
-                        "pd4",
-                        "pd5",
-                        "bav",
-                        "mag",
-                        "tis",
-                    ],
-                    struct.unpack("<2b2b2iB6BBBI", data),
+            elif state == State.START:
+                if self.s.in_waiting < 1:
+                    time.sleep(0.1)
+                    continue
+
+                start = self.s.read(1)[0]
+
+                if start == Constants.SB_ACK or start == Constants.SB_NACK:
+                    if self.send_lock.locked():
+                        self.send_lock.release()
+                    return start, None
+
+                elif start == Constants.SB_STREAM:
+                    state = State.STREAM
+
+                elif start == Constants.SB_CONFIG:
+                    state = State.CONFIG
+
+                else:
+                    print(f"unknown start byte {start}")
+                    self.send('stream 1', True)
+                    state = State.SYNCING
+
+            elif state == State.STREAM:
+                if self.s.in_waiting < 25:
+                    time.sleep(0.1)
+                    continue
+
+                data = self.s.read(25)
+                data_stream = dict(
+                    zip(
+                        [
+                            "msl",
+                            "msr",
+                            "mtl",
+                            "mtr",
+                            "mel",
+                            "mer",
+                            "sta",
+                            "pd0",
+                            "pd1",
+                            "pd2",
+                            "pd3",
+                            "pd4",
+                            "pd5",
+                            "bav",
+                            "mag",
+                            "tis",
+                        ],
+                        struct.unpack("<2b2b2iB6BBBI", data),
+                    )
                 )
-            )
 
-            return start, data_stream
+                return Constants.SB_STREAM, data_stream
 
-        elif start == Constants.SB_CONFIG:
-            self.sync_cnt = 0
+            elif state == State.CONFIG:
+                count = len(self.config_names)
+                if self.s.in_waiting < count * 8:
+                    time.sleep(0.1)
+                    continue
 
-            if self.debug:
-                print("config")
+                data = self.s.read(count * 8)
+                config = dict(zip(self.config_names, struct.unpack(f"<{count}d", data)))
 
-            count = len(self.config_names)
-            data = self.s.read(count * 8)
-            config = dict(zip(self.config_names, struct.unpack(f"<{count}d", data)))
+                return Constants.SB_CONFIG, config
 
-            return start, config
+        return Constants.SB_NACK, None
 
-        else:
-            self.sync_cnt = 0
-
-            print(f"unknown start byte {start}")
-            self.send("stream 1", True)
-            return Constants.SB_NACK, None
-
-    def send(self, cmd, ignore_ack=False):
+    def send(self, cmd, ignore_ack=False, timeout=1):
         print("sending", cmd)
-        if not ignore_ack:
-            self.send_lock.acquire(timeout=5)
         self.s.write(cmd.encode() + b"\n")
+        if not ignore_ack:
+            self.send_lock.acquire(timeout=timeout)
 
     def disconnect(self):
         print("disconnecting")

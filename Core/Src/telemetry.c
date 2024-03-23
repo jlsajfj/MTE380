@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define SYNC_COUNT 500
+#define SYNC_COUNT 50
 #define STREAM_INTERVAL 5
 
 const char SB_ACK    = 0x06;
