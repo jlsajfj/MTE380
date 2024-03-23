@@ -1,26 +1,27 @@
 import re
 import os
 from collections import deque
+from typing import Dict, List, Optional
 
 
 class Constants:
-    SYNC_COUNT = 10
-    SB_ACK = 0x06
-    SB_NACK = 0x07
-    SB_STREAM = 0x0E
-    SB_CONFIG = 0x0F
+    SYNC_COUNT: int = 10
+    SB_ACK: int = 0x06
+    SB_NACK: int = 0x07
+    SB_STREAM: int = 0x0E
+    SB_CONFIG: int = 0x0F
 
-    CONFIG_C = "Core/Src/config.c"
-    STATE_H = "Core/Inc/state.h"
+    CONFIG_C: str = "Core/Src/config.c"
+    STATE_H: str = "Core/Inc/state.h"
 
-    CODE_MAP = {
+    CODE_MAP: Dict[int, str] = {
         SB_ACK: "ACK",
         SB_NACK: "NACK",
         SB_STREAM: "STREAM",
         SB_CONFIG: "CONFIG",
     }
 
-    FILTERS = {
+    FILTERS: Dict[str, int] = {
         "msl": 5,
         "msr": 5,
         "mtl": 5,
@@ -30,7 +31,7 @@ class Constants:
         "bav": 50,
     }
 
-    HEADERS = [
+    HEADERS: List[str] = [
         "msl",
         "msr",
         "mtl",
@@ -48,13 +49,13 @@ class Constants:
         "tis",
     ]
 
-    _STATE_NAMES = None
-    _CONFIG_NAMES = None
-    _STATE_MAP = None
+    _STATE_NAMES: Optional[List[str]] = None
+    _CONFIG_NAMES: Optional[List[str]] = None
+    _STATE_MAP: Optional[Dict[int, str]] = None
 
     @classmethod
     @property
-    def STATE_NAMES(cls):
+    def STATE_NAMES(cls) -> List[str]:
         if cls._STATE_NAMES:
             return cls._STATE_NAMES
 
@@ -69,7 +70,7 @@ class Constants:
 
     @classmethod
     @property
-    def CONFIG_NAMES(cls):
+    def CONFIG_NAMES(cls) -> List[str]:
         if cls._CONFIG_NAMES:
             return cls._CONFIG_NAMES
 
@@ -84,7 +85,7 @@ class Constants:
 
     @classmethod
     @property
-    def STATE_MAP(cls):
+    def STATE_MAP(cls) -> Dict[int, str]:
         if cls._STATE_MAP:
             return cls._STATE_MAP
 
@@ -93,20 +94,33 @@ class Constants:
 
 
 class Filters:
+    class ValueStore:
+        def __init__(self, size: int):
+            self.q: deque[float] = deque([0] * size)
+            self.s: float = 0
+            self.size: int = size
+
+        def update(self, val: float):
+            self.s -= self.q.popleft()
+            self.s += val
+            self.q.append(val)
+
+            return self.s / self.size
+
     def __init__(self):
-        self.vals = dict(zip(Constants.HEADERS, [0] * len(Constants.HEADERS)))
-        self.caches = {}
-        for f in Constants.FILTERS:
-            self.caches[f] = [deque([0] * Constants.FILTERS[f]), 0]
-
-    def process(self, new_input):
-        self.vals = new_input
+        self.vals: Dict[str, float] = dict(
+            zip(Constants.HEADERS, [0] * len(Constants.HEADERS))
+        )
+        self.caches: Dict[str, self.ValueStore] = {}
 
         for f in Constants.FILTERS:
-            self.caches[f][1] -= self.caches[f][0].popleft()
-            self.caches[f][1] += new_input[f]
-            self.caches[f][0].append(new_input[f])
-            self.vals[f] = self.caches[f][1] / Constants.FILTERS[f]
+            self.caches[f] = self.ValueStore(Constants.FILTERS[f])
 
-    def get(self):
+    def process(self, new_input: Dict[str, float]):
+        self.vals = dict(new_input)
+
+        for f in Constants.FILTERS:
+            self.vals[f] = self.caches[f].update(new_input[f])
+
+    def get(self) -> Dict[str, float]:
         return self.vals
