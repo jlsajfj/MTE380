@@ -8,6 +8,8 @@ from helper import Constants
 
 
 class Robot:
+    State = Enum('DecoderState', ['SYNCING', 'START', 'STREAM', 'CONFIG'])
+
     def __init__(self, dn: str = "COM4", con: bool = False):
         self.config_names = Constants.CONFIG_NAMES
         self.dn = dn
@@ -15,7 +17,8 @@ class Robot:
         self.sw = None
         self.send_lock = threading.Lock()
         self.debug = False
-        self.synced = False
+        self.state = Robot.State.SYNCING
+
         if con:
             self.connect()
 
@@ -27,26 +30,22 @@ class Robot:
             return
         print("connecting to device")
         self.s = serial.Serial(self.dn, 115200)
-        self.synced = False
+        self.state = Robot.State.SYNCING
         print("bluetooth device has been connected")
-
         self.s.write(b'\n')
-        self.read() # first sync
+
+        # first sync
+        self.send('stream 1', True)
+        self.read()
 
     def read(self):  # https://stackoverflow.com/a/7155595
         if self.debug:
             print("reading")
 
-        State = Enum('DecoderState', ['SYNCING', 'START', 'STREAM', 'CONFIG'])
-        state = State.START
         sync_cnt = 0
 
-        if not self.synced:
-            self.send('stream 1', True)
-            state = State.SYNCING
-
         while self.s is not None:
-            if state == State.SYNCING:
+            if self.state == Robot.State.SYNCING:
                 if self.s.in_waiting < 1:
                     time.sleep(0.1)
                     continue
@@ -59,10 +58,9 @@ class Robot:
 
                 if sync_cnt >= Constants.SYNC_COUNT:
                     print("synced")
-                    self.synced = True
-                    state = State.START
+                    self.state = Robot.State.START
 
-            elif state == State.START:
+            elif self.state == Robot.State.START:
                 if self.s.in_waiting < 1:
                     time.sleep(0.1)
                     continue
@@ -75,17 +73,20 @@ class Robot:
                     return start, None
 
                 elif start == Constants.SB_STREAM:
-                    state = State.STREAM
+                    self.state = Robot.State.STREAM
 
                 elif start == Constants.SB_CONFIG:
-                    state = State.CONFIG
+                    self.state = Robot.State.CONFIG
 
                 else:
                     print(f"unknown start byte {start}")
-                    self.send('stream 1', True)
-                    state = State.SYNCING
 
-            elif state == State.STREAM:
+                    if self.send_lock.locked():
+                        self.send_lock.release()
+                    self.send('stream 1', True)
+                    self.state = Robot.State.SYNCING
+
+            elif self.state == Robot.State.STREAM:
                 if self.s.in_waiting < 25:
                     time.sleep(0.1)
                     continue
@@ -115,9 +116,10 @@ class Robot:
                     )
                 )
 
+                self.state = Robot.State.START
                 return Constants.SB_STREAM, data_stream
 
-            elif state == State.CONFIG:
+            elif self.state == Robot.State.CONFIG:
                 count = len(self.config_names)
                 if self.s.in_waiting < count * 8:
                     time.sleep(0.1)
@@ -126,8 +128,10 @@ class Robot:
                 data = self.s.read(count * 8)
                 config = dict(zip(self.config_names, struct.unpack(f"<{count}d", data)))
 
+                self.state = Robot.State.START
                 return Constants.SB_CONFIG, config
 
+        self.state = Robot.State.SYNCING
         return Constants.SB_NACK, None
 
     def send(self, cmd, ignore_ack=False, timeout=1):
@@ -150,8 +154,6 @@ def main():
 
     r.connect()
 
-    r.send("stream 1")
-    r.send("sync")
     r.send("get")
 
     for i in range(20):
