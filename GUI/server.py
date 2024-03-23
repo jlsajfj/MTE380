@@ -27,9 +27,9 @@ Handler.callback = r.send
 
 def runGet():
     while True:
-        r.send("get")
-        time.sleep(1)
+        # r.send("get")
         print(time.time())
+        time.sleep(1)
 
 
 t2 = threading.Thread(target=runGet)
