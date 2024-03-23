@@ -3,7 +3,6 @@ from robot import Robot
 import threading
 from SimpleWebSocketServer import SimpleWebSocketServer
 import sys
-import time
 import json
 from helper import Constants, Filters
 
