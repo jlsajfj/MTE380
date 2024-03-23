@@ -112,7 +112,14 @@ function sendText() {
 }
 
 function clearText() {
-    clearData(encChart);
+    charts.forEach( chart => {
+        chart.data.labels = [];
+        chart.data.datasets.forEach( dataset => {
+            dataset.data = [];
+        });
+
+        chart.update();
+    });
 }
 
 function doDisconnect() {
@@ -125,6 +132,7 @@ function updateCharts() {
             chart.data.labels.shift();
         }
         chart.data.labels.push(current_data.tis);
+
         chart.data.datasets.forEach((dataset) => {
             if (dataset.data.length >= 100) {
                 dataset.data.shift();
@@ -132,6 +140,7 @@ function updateCharts() {
             // console.log(dataset);
             dataset.data.push(current_data[dataset.label]);
         });
+
         chart.update();
     });
 }
@@ -152,9 +161,3 @@ function addData(chart, label, data) {
     chart.update();
 }
 
-function clearData(chart) {
-    chart.data.labels = [];
-    chart.data.datasets.forEach(dataset => {
-        dataset.data = [];
-    });
-}
