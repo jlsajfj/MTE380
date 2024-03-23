@@ -24,7 +24,6 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "music.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -40,6 +39,7 @@
 #include "state.h"
 #include "telemetry.h"
 #include "speed.h"
+#include "music.h"
 
 #include "stm32f4xx_hal.h"
 

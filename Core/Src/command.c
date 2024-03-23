@@ -79,13 +79,14 @@ void command_run(void) {
       motor_stop(M1);
       motor_stop(M2);
 
-    } else if(MATCH_CMD("play")) {
+    } else if(MATCH_CMD("burn the motor")) {
       music_play();
 
     } else if(MATCH_CMD("pause")) {
       music_pause();
 
     } else if(MATCH_CMD_D("buzz")) {
+      control_setState(CONTROL_STATE_NEUTRAL);
       motor_buzz(M1, darg);
       motor_buzz(M2, darg);
 
@@ -122,6 +123,7 @@ void command_run(void) {
       control_setState(CONTROL_STATE_ARC);
 
     } else if(MATCH_CMD_D("pwm")) {
+      control_setState(CONTROL_STATE_NEUTRAL);
       motor_setPWM(M1, darg);
       motor_setPWM(M2, darg);
 
@@ -234,8 +236,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
       _write(1, erase, 2);
       rx_idx--;
     }
-  } else if((rx_char == '\r' || rx_char == '\n') && !rx_pend) {
-    if(rx_idx > 0) {
+  } else if(rx_char == '\r' || rx_char == '\n') {
+    if(!rx_pend && rx_idx > 0) {
       rx_buff[rx_idx] = '\0';
       rx_len = rx_idx;
       rx_idx = 0;
