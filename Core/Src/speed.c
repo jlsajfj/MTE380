@@ -76,6 +76,7 @@ void speed_stopRecord(void) {
 }
 
 speed_type_E speed_fromCount(int32_t count) {
+  double slipped_count = count * config_get(CONFIG_ENTRY_SPEED_SLIP);
   speed_type_E type = SPEED_TYPE_SLOW;
 
   for(uint32_t i = 0; i < speed_num_points; i++) {
@@ -99,7 +100,7 @@ speed_type_E speed_fromCount(int32_t count) {
         break;
     }
 
-    if(count >= c || i == 0) {
+    if(slipped_count >= c || i == 0) {
       type = t;
     }
   }
