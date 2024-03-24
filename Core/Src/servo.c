@@ -19,6 +19,7 @@ typedef struct {
 typedef struct {
   uint32_t start;
   uint32_t pulse;
+  bool locked;
 } servo_data_S;
 
 static servo_definition_S servos[SERVO_COUNT] = {
@@ -27,6 +28,8 @@ static servo_definition_S servos[SERVO_COUNT] = {
 };
 
 static servo_data_S servo_datas[SERVO_COUNT];
+
+void servo_setPositionPrivate(servo_E servo_id, double angle);
 
 void servo_init(void) {
   for(servo_E servo_id = S1; servo_id < SERVO_COUNT; servo_id++) {
@@ -55,7 +58,30 @@ void servo_run(void) {
 }
 
 void servo_setPosition(servo_E servo_id, double angle) {
+  servo_setPositionPrivate(servo_id, angle);
+  servo_data_S *data = &servo_datas[servo_id];
+  data->locked = false;
+}
+
+void servo_setPositionPrivate(servo_E servo_id, double angle) {
   servo_data_S *data = &servo_datas[servo_id];
   data->pulse = (uint32_t) MAP(SATURATE(angle, 0, 1), SERVO_PULSE_MIN, SERVO_PULSE_MAX);
   data->start = HAL_GetTick();
+}
+
+void servo_lock(servo_E servo_id, bool lock) {
+  servo_data_S *data = &servo_datas[servo_id];
+
+  if(lock) {
+    servo_setPosition(servo_id, config_get(CONFIG_ENTRY_SERVO_LOCK));
+  } else {
+    servo_setPosition(servo_id, config_get(CONFIG_ENTRY_SERVO_UNLOCK));
+  }
+
+  data->locked = lock;
+}
+
+bool servo_isLocked(servo_E servo_id) {
+  servo_data_S *data = &servo_datas[servo_id];
+  return data->locked;
 }

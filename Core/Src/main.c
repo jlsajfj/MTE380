@@ -40,6 +40,7 @@
 #include "telemetry.h"
 #include "speed.h"
 #include "music.h"
+#include "button.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -119,6 +120,7 @@ int main(void)
 
   config_load();
   sensor_init();
+  button_init();
   compass_init();
   command_init();
   sm_init();
@@ -146,6 +148,7 @@ int main(void)
     // order is important
     sensor_run();
     compass_run();
+    button_run();
     command_run();
     sm_run();
     control_run();

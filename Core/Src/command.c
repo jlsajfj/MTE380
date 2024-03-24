@@ -1,6 +1,5 @@
 #include "command.h"
 #include "usart.h"
-#include "gpio.h"
 #include "control.h"
 #include "sensor.h"
 #include "flash.h"
@@ -29,36 +28,11 @@ static uint16_t rx_idx = 0;
 static volatile bool rx_pend = false;
 static uint16_t rx_len = 0;
 
-static uint16_t btn_dbc = 0;
-
 void command_init(void) {
   HAL_UART_Receive_IT(&huart2, (uint8_t*) &rx_char, 1);
 }
 
 void command_run(void) {
-  bool btn = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET;
-  bool btn_rise = btn && btn_dbc == 0;
-
-  if(btn) {
-    btn_dbc = 100;
-  } else if(btn_dbc > 0) {
-    btn_dbc--;
-  }
-
-  if(btn_rise) {
-    static bool locked = true;
-    double position = 0.0;
-    if(locked) {
-        position = config_get(CONFIG_ENTRY_SERVO_LOCK);
-    } else {
-        position = config_get(CONFIG_ENTRY_SERVO_UNLOCK);
-    }
-    servo_setPosition(S1, position);
-    locked ^= 1;
-
-    sm_setState(SM_STATE_STANDBY);
-  }
-
   char sarg[64];
   double darg;
   bool command_success = true;
@@ -220,10 +194,14 @@ void command_run(void) {
 
     tele_respond(command_success);
 
-#undef MATCH_CMD
-
     rx_pend = false;
   }
+
+#undef MATCH_CMD
+#undef MATCH_CMD_S
+#undef MATCH_CMD_D
+#undef MATCH_CMD_SD
+
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
