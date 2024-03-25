@@ -7,7 +7,7 @@ const C_PURPLE = '#d33682';
 const COLORS = [C_RED, C_ORANGE, C_YELLOW, C_GREEN, C_BLUE, C_PURPLE];
 
 let charts = [];
-function buildChart(name, inputs){
+function buildChart(title, name, inputs){
     let canvas = document.getElementById(name);
     let d = inputs.map((l, i) => {
         return {
@@ -25,6 +25,26 @@ function buildChart(name, inputs){
             },
             options: {
                 animation: false,
+                elements: {
+                    point: {
+                        radius: 0,
+                    },
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            boxWidth: 30,
+                        },
+                    },
+                    title: {
+                        display: true,
+                        text: title,
+                        font: {
+                            color: '#839496',
+                        },
+                        padding: 0,
+                    },
+                },
                 scales: {
                     x: {
                         ticks: {
@@ -48,9 +68,15 @@ function buildChart(name, inputs){
         };
     let chart = new Chart(canvas, config);
     charts.push(chart);
+    return chart;
 }
-buildChart('speChartL', ['mtl', 'msl']);
-buildChart('speChartR', ['mtr', 'msr']);
-buildChart('encChart', ['mel', 'mer']);
-buildChart('bavChart', ['bav']);
+let enc  = buildChart('Left and Right Encoder Counts', 'encChart', ['mel', 'mer']);
+let speL = buildChart('Left Target and Actual Speed', 'speChartL', ['mtl', 'msl']);
+let speR = buildChart('Right Target and Actual Speed', 'speChartR', ['mtr', 'msr']);
+let bav  = buildChart('Battery Voltage', 'bavChart', ['bav']);
+let sta  = buildChart('Current State', 'staChart', ['sta']);
+let pho  = buildChart('Photo Diodes', 'phoChart', ['pd0', 'pd1', 'pd2', 'pd3', 'pd4', 'pd5']);
+sta.config.options.scales.y.beginAtZero = true;
+sta.config.options.scales.y.max = 18;
+console.log(sta);
 
