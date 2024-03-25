@@ -2,8 +2,17 @@ body {
   background-color: #002b36;
   color: #839496;
   padding-bottom: 150px;
+  overflow-y: scroll;
 }
-/* Style the header */
+
+#charts {
+  padding-top: 1vw;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
 .header {
   padding: 30px;
 }
@@ -23,13 +32,24 @@ body {
 }
 
 .button-row {
-  margin: 5px;
+  display: flex;
+}
+
+.button-row > * {
+  flex-grow: 1;
+  width: 30px;
+  margin: 5px 5px;
+}
+
+.button-row > a > input {
+  width: 100%;
 }
 
 input[type="button"]{
   padding: 5px 15px;
   color: #839496;
   background-color: #073642;
+  font-family: monospace;
 }
 
 input[type="button"]:disabled{
@@ -45,9 +65,9 @@ input[type="text"]{
   padding: 30px;
   text-align: center;
   font-size: 25px;
+  margin-top: 20px;
 }
 
-/* The grid container */
 .grid-container {
   display: flex;
   justify-content: space-evenly;
@@ -60,9 +80,28 @@ input[type="text"]{
   text-align: center;
 }
 
+.map {
+  margin: 2.5vw 2.5vw;
+  text-align: center;
+}
+
+#configs {
+  margin-top: 1vw;
+  margin-bottom: 3vw;
+}
+
 .conf-row {
   width: 25vw;
-  margin: 0 auto;
+  margin: 4px auto;
   text-align: right;
 }
 
+.conf-row > * {
+  margin: 0 4px;
+}
+
+#map {
+  width: 40vw;
+  height: 40vw;
+  border: 2px solid #839496;
+}

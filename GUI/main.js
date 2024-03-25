@@ -12,6 +12,7 @@ function init() {
     }
     document.myform.disconnectButton.disabled = true;
     doConnect();
+    mapInit();
 }
 
 function updateState(c_new_state) {
@@ -73,6 +74,7 @@ function onMessage(evt) {
         current_data.tis /= 1000;
         // console.log(current_data.sta);
         updateCharts();
+        updateMap();
         // charts.forEach(chart => addData(chart, data.data.tis, data.data));
         updateState(data.data.sta);
     } else if(data.code === 'CONFIG'){

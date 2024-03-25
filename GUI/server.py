@@ -6,18 +6,12 @@ import sys
 import json
 from helper import Constants, Filters
 
-server = SimpleWebSocketServer("", 8000, Handler)
-t1 = threading.Thread(target=server.serveforever)
-t1.start()
-
 if len(sys.argv) > 1:
     r = Robot(sys.argv[1])
 else:
     r = Robot()
-
 r.connect()
-
-cnt = 0
+r.send("get", True)
 
 
 def send_robot(message: str) -> None:
@@ -29,8 +23,6 @@ def send_robot(message: str) -> None:
 
 Handler.callback = send_robot
 
-p_state = None
-
 
 def send(code, data):
     packed_data = {
@@ -41,8 +33,15 @@ def send(code, data):
     Handler.broadcast(json.dumps(packed_data))
 
 
-f = Filters()
+server = SimpleWebSocketServer("", 8000, Handler)
+t1 = threading.Thread(target=server.serveforever)
+t1.start()
+
+# define MOTOR_COUNT_PER_MM (30 * 20 / 28.0 / M_PI)
 try:
+    cnt = 0
+    p_state = None
+    f = Filters()
     while True:
         code, data = r.read()
         # print(data)
@@ -58,6 +57,10 @@ try:
             if cnt >= 10:
                 send(code, f.get())
                 cnt = 0
+        elif code == Constants.SB_CONFIG:
+            print("config")
+            Handler.cur_config = data
+            send(code, data)
         else:
             send(code, data)
 except KeyboardInterrupt:
@@ -66,5 +69,5 @@ except KeyboardInterrupt:
 server.close()
 t1.join()
 
-r.send("stream 0")
+r.send("stream 0", True)
 r.disconnect()

@@ -125,3 +125,8 @@ class Filters:
 
     def get(self) -> Dict[str, float]:
         return self.vals
+
+
+class Positioner:
+    def __init__(self, x: float = 50.0, y: float = 50.0):
+        pass

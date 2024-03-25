@@ -5,11 +5,12 @@
     <link rel="stylesheet" href="main.css">
   </head>
   <body>
+    <!-- CONTROL BAR -->
     <div class="grid-container" id="control-bar">
       <div class="header">
         <form name="myform">
           <tt id="output"> Output </tt>
-          <br />
+          <p />
           <input type="text" name="inputtext" placeholder="Command" class="cmd" onkeydown="keySend(this)" />
           <p />
           <input type="button" name=sendButton value="Send" onClick="sendText();">
@@ -32,9 +33,17 @@
       </div>
       <div id="timer">
         <tt id="timer-text">0.000</tt>
+        <div class="button-row">
+          <a href="#charts"><input type="button" value="Charts"></a>
+          <a href="#configs"><input type="button" value="Config"></a>
+          <a href="#map"><input type="button" value="Map"></a>
+        </div>
       </div>
     </div>
-    <div class="grid-container">
+
+
+    <!-- FIRST ROW OF CHARTS -->
+    <div class="grid-container" id="charts">
       <div class="left">
         <canvas id="encChart">
         </canvas>
@@ -48,6 +57,8 @@
         </canvas>
       </div>
     </div>
+
+    <!-- SECOND ROW OF CHARTS -->
     <div class="grid-container">
       <div class="left">
         <canvas id="bavChart">
@@ -62,7 +73,9 @@
         </canvas>
       </div>
     </div>
-    <div class="grid-container">
+
+    <!-- CONFIG -->
+    <div class="grid-container" id="configs">
       <div id="config-0">
       </div>
       <div id="config-1">
@@ -70,8 +83,16 @@
       <div id="config-2">
       </div>
     </div>
+
+    <!-- MAP -->
+    <div class="map">
+      <canvas id="map" width=600 height=600>
+      </canvas>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script language="javascript" src="chart_setup.js"></script>
+    <script language="javascript" src="map.js"></script>
     <script language="javascript" src="main.js"></script>
   </body>
 </html>

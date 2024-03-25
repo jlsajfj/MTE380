@@ -9,6 +9,7 @@ import json
 class Handler(WebSocket):
     c_list = []
     callback = print
+    cur_config = {}
 
     def handleMessage(self):
         Handler.callback(self.data)
@@ -19,7 +20,14 @@ class Handler(WebSocket):
             "code": "STATE_MAP",
             "data": Constants.STATE_MAP,
         }
+        # print(packed_data)
         self.sendMessage(json.dumps(packed_data))
+
+        packed_data["code"] = "CONFIG"
+        packed_data["data"] = Handler.cur_config
+        # print(packed_data)
+        self.sendMessage(json.dumps(packed_data))
+
         Handler.c_list.append(self)
 
     def handleClose(self):
