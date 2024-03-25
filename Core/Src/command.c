@@ -144,27 +144,31 @@ void command_run(void) {
     } else if(MATCH_CMD("load")) {
       speed_load();
       config_load();
+      tele_dumpConfig();
 
     } else if(MATCH_CMD("erase")) {
       flash_erase();
       speed_load();
       config_load();
       puts("erased");
+      tele_dumpConfig();
 
     } else if(MATCH_CMD("reset")) {
       NVIC_SystemReset();
 
     } else if(MATCH_CMD("reset_speed")) {
       speed_reset();
+      puts("speed points cleared");
 
     } else if(MATCH_CMD_SD("set")) {
       config_setByName(sarg, darg);
       double value = config_getByName(sarg);
       printf("%16s = %lf\n", sarg, value);
+      tele_dumpConfig();
 
     } else if(MATCH_CMD("get")) {
-        config_print();
-        tele_dumpConfig();
+      config_print();
+      tele_dumpConfig();
 
     } else if(MATCH_CMD_S("get")) {
       double value = config_getByName(sarg);
