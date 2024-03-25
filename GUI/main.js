@@ -1,10 +1,10 @@
-let state = "STANDBY";
-let wurl = 'ws://localhost:8000/';
-let start_time = 0;
-let end_time = 0;
-let running = false;
-let current_data = {};
-let state_map = {1: "STANDBY"};
+var state = "STANDBY";
+var wurl = 'ws://localhost:8000/';
+var start_time = 0;
+var end_time = 0;
+var running = false;
+var current_data = {};
+var state_map = {1: "STANDBY"};
 
 function init() {
     if (window.location.hostname === "bot.joseph.ma") {

@@ -1,6 +1,7 @@
-import re
-import os
 from collections import deque
+import math
+import os
+import re
 from typing import Dict, List, Optional
 
 
@@ -123,10 +124,63 @@ class Filters:
         for f in Constants.FILTERS:
             self.vals[f] = self.caches[f].update(new_input[f])
 
-    def get(self) -> Dict[str, float]:
+    def get(self, name: Optional[str] = None) -> Dict[str, float]:
+        if name:
+            return self.vals[name]
+
         return self.vals
 
 
 class Positioner:
-    def __init__(self, x: float = 50.0, y: float = 50.0):
-        pass
+    # distance from wheels to center of bot in units of 100/ft
+    m_dist = 15.625
+    # conversion factor for map units per motor count
+    unit_per_motor_count = 100 * math.pi * 28 / 12 / 25.4 / 30 / 20
+    # half distance between wheels
+    dw = 19
+
+    def __init__(
+        self,
+        x: float = 565.625,
+        y: float = 50.0,
+        el: float = 0,
+        er: float = 0,
+        t: float = math.pi,
+    ):
+        self.rx: float = x
+        self.ry: float = y
+        self.el: float = el
+        self.er: float = er
+        self.t: float = t
+
+    @property
+    def px(self) -> float:
+        return self.rx + Positioner.m_dist * math.cos(self.t)
+
+    @property
+    def py(self) -> float:
+        return self.ry + Positioner.m_dist * math.sin(self.t)
+
+    @property
+    def tx(self) -> float:
+        return self.px
+
+    @property
+    def ty(self) -> float:
+        return 600.0 - self.py
+
+    def update(self, el: float, er: float) -> None:
+        el *= Positioner.unit_per_motor_count
+        er *= Positioner.unit_per_motor_count
+        dl = el - self.el
+        dr = er - self.er
+
+        d = (dl + dr) / 2
+        dt = (dl + dr) / (2 * Positioner.dw)
+
+        self.rx += d * math.cos(self.t + dt / 2)
+        self.ry += d * math.sin(self.t + dt / 2)
+        self.t += dt
+
+        self.el = el
+        self.er = er
