@@ -8,7 +8,7 @@ from helper import Constants
 
 
 class Robot:
-    State = Enum("DecoderState", ["SYNCING", "START", "STREAM", "CONFIG"])
+    State = Enum("DecoderState", ["SYNCING", "START", "STREAM", "CONFIG", "SPEED"])
 
     def __init__(self, dn: str = "COM4", con: bool = False):
         self.config_names = Constants.CONFIG_NAMES
@@ -91,6 +91,9 @@ class Robot:
                 elif start == Constants.SB_CONFIG:
                     self.state = Robot.State.CONFIG
 
+                elif start == Constants.SB_SPEED:
+                    self.state = Robot.State.SPEED
+
                 else:
                     print(f"unknown start byte {start}")
 
@@ -145,6 +148,22 @@ class Robot:
 
                 self.state = Robot.State.START
                 return Constants.SB_CONFIG, config
+
+            elif self.state == Robot.State.SPEED:
+                if self.s.in_waiting < 2:
+                    time.sleep(0.1)
+                    continue
+
+                count = struct.unpack("<H", self.s.read(2))[0]
+                if self.s.in_waiting < count * 5:
+                    time.sleep(0.1)
+                    continue
+
+                data = self.s.read(count * 5)
+                speed_points = [{'count': p[0], 'speed': p[1]} for p in zip(*[iter(struct.unpack("<" + count * "iB", data))]*2)]
+
+                self.state = Robot.State.START
+                return Constants.SB_SPEED, speed_points
 
         self.state = Robot.State.SYNCING
         return Constants.SB_NACK, None

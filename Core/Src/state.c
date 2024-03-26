@@ -15,11 +15,6 @@ static uint32_t sm_state_time;
 
 static bool cal_finished;
 
-typedef struct {
-  int32_t count;
-  double speed;
-} speed_point_S;
-
 void sm_init(void) {
   sm_setState(SM_STATE_STANDBY);
 }
