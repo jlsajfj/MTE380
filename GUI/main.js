@@ -23,6 +23,7 @@ function updateState(c_new_state) {
         if(state === "UNHOOK") {
             start_time = current_data.tis;
             running = true;
+            resetMap();
         } else if(state === "TARGET_BREAK" || state === "STANDBY" || state === "AIM") {
             running = false;
         }
@@ -129,6 +130,8 @@ function clearText() {
 
         chart.update();
     });
+
+    resetMap();
 }
 
 function doDisconnect() {

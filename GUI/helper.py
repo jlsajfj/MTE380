@@ -51,9 +51,9 @@ class Constants:
         "tis",
     ]
 
-    _STATE_NAMES: Optional[List[str]] = None
-    _CONFIG_NAMES: Optional[List[str]] = None
-    _STATE_MAP: Optional[Dict[int, str]] = None
+    _STATE_NAMES = None
+    _CONFIG_NAMES = None
+    _STATE_MAP = None
 
     @classmethod
     @property
@@ -138,6 +138,8 @@ class Positioner:
     unit_per_motor_count = 100 * math.pi * 28 / 12 / 25.4 / 30 / 20
     # half distance between wheels
     dw = 19
+    # adjustmet factor
+    adj = 1.10
 
     def __init__(
         self,
@@ -161,17 +163,9 @@ class Positioner:
     def py(self) -> float:
         return self.ry + Positioner.m_dist * math.sin(self.t)
 
-    @property
-    def tx(self) -> float:
-        return self.px
-
-    @property
-    def ty(self) -> float:
-        return 600.0 - self.py
-
     def update(self, el: float, er: float) -> None:
-        el *= Positioner.unit_per_motor_count
-        er *= Positioner.unit_per_motor_count
+        el *= Positioner.unit_per_motor_count * Positioner.adj
+        er *= Positioner.unit_per_motor_count * Positioner.adj
         dl = el - self.el
         dr = er - self.er
 

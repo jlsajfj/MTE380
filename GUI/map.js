@@ -6,24 +6,35 @@ var prevPos = [];
 var initialized = false;
 var fx = 0.0, fy = 0.0;
 var cx = 0.0, cy = 0.0;
+var rx = 0.0, ry = 0.0;
+var runner;
 
 function mapInit() {
-    console.log(mapCanvas);
-    setInterval(drawMap, 100);
+    runner = setInterval(drawMap, 100);
     drawMap();
+}
+
+function resetMap() {
+    clearInterval(runner);
+    initialized = false;
+    prevPos = [];
 }
 
 function updateMap() {
     let px = current_data.px, py = current_data.py;
-    cx = px, cy = py;
+    rx = current_data.rx, ry = current_data.ry;
     if(!initialized) {// first run
         fx = px;
         fy = py;
         initialized = true;
         mapInit();
+        cx = px, cy = py;
         return;
     }
 
+    if(px == cx && py == cy) return;
+
+    cx = px, cy = py;
     prevPos.push([px, py]);
 }
 
@@ -43,10 +54,26 @@ function drawMap() {
         mapCtx.stroke();
     }
 
-    mapCtx.strokeStyle = "#dc322f";
-    mapCtx.fillStyle = "#dc322f";
+    mapCtx.strokeStyle = "#cb4b16";
+    mapCtx.lineWidth = 3;
     mapCtx.beginPath();
-    mapCtx.arc(cx, cy, 3, 0, 2 * Math.PI);
+    mapCtx.moveTo(fx, fy);
+    prevPos.forEach( pos => mapCtx.lineTo(pos[0], pos[1]) );
+    mapCtx.stroke();
+
+    mapCtx.strokeStyle = "#dc322f";
+    mapCtx.beginPath();
+    mapCtx.fillStyle = "#002b36";
+    mapCtx.beginPath();
+    mapCtx.arc(cx, cy, 4, 0, 2 * Math.PI);
+    mapCtx.fill();
+    mapCtx.stroke();
+
+    mapCtx.strokeStyle = "#d33682";
+    mapCtx.beginPath();
+    mapCtx.fillStyle = "#002b36";
+    mapCtx.beginPath();
+    mapCtx.arc(rx, ry, 4, 0, 2 * Math.PI);
     mapCtx.fill();
     mapCtx.stroke();
 }

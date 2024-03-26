@@ -54,6 +54,8 @@ try:
             if data["sta"] != p_state:
                 send(code, f.get())
                 p_state = data["sta"]
+                if p_state == 2:
+                    p = Positioner()
 
             p.update(f.get("mel"), f.get("mer"))
             cnt += 1
@@ -63,6 +65,8 @@ try:
                 f_data = f.get()
                 f_data["px"] = p.px
                 f_data["py"] = p.py
+                f_data["rx"] = p.rx
+                f_data["ry"] = p.ry
 
                 send(code, f_data)
         elif code == Constants.SB_CONFIG:
