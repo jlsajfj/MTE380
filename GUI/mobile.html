@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <title>Mobile GUI</title>
+        <link rel="stylesheet" href="mobile.css">
+    </head>
+    <body>
+        <!-- CONTROL BAR -->
+        <div class="grid-container" id="control-bar">
+            <div class="header">
+                <form name="myform">
+                    <tt id="output"> Output </tt>
+                    <p />
+                    <input type="text" name="inputtext" placeholder="Command" class="cmd" onkeydown="keySend(this)" />
+                    <p />
+                    <input type="button" name=sendButton value="Send" onClick="sendText();">
+                    <input type="button" name=clearButton value="Clear" onClick="clearText();">
+                    <input type="button" name=disconnectButton value="Disconnect" onClick="doDisconnect();">
+                    <input type="button" name=connectButton value="Connect" onClick="doConnect();">
+                    <input type="button" value="Sync" onClick="doSend('stream 1');">
+                </form>
+            </div>
+            <div class="remote">
+                <div class="button-row">
+                    <input type="button" name=startButton value="Start" onClick="doSend('start');">
+                    <input type="button" name=lockKicker value="Lock Kicker" onClick="doSend('kick l');">
+                    <input type="button" name=lockCatcher value="Lock Catcher" onClick="doSend('hook l');">
+                </div>
+                <div class="button-row">
+                    <input type="button" name=stopButton value="Stop" onClick="doSend('stop');">
+                    <input type="button" name=unlockKicker value="Unlock Kicker" onClick="doSend('kick u');">
+                    <input type="button" name=unlockCatcher value="Unlock Catcher" onClick="doSend('hook u');">
+                </div>
+                <div class="button-row">
+                    <input type="button" value="Bad Apple" onClick="doSend('burn the motor badapple');">
+                    <input type="button" value="Megalovania" onClick="doSend('burn the motor megalovania');">
+                    <input type="button" value="Still Alive" onClick="doSend('burn the motor stillalive');">
+                </div>
+            </div>
+            <div id="timer">
+                <tt id="timer-text">0.000</tt>
+                <div class="button-row">
+                    <a href="#charts"><input type="button" value="Charts"></a>
+                    <a href="#configs"><input type="button" value="Config"></a>
+                    <a href="#map"><input type="button" value="Map"></a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

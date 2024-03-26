@@ -1,0 +1,34 @@
+body {
+  background-color: #002b36;
+  color: #839496;
+  padding-bottom: 150px;
+}
+
+.grid-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  flex-direction: column;
+  align-content: space-between;
+} 
+
+.grid-container > div {
+  flex-grow: 1;
+  max-width: 30vw;
+  text-align: center;
+}
+
+.remote, .header {
+  padding: 15px;
+}
+
+.button-row {
+  display: flex;
+}
+
+.button-row > * {
+  flex-grow: 1;
+  width: 10px;
+  margin: 5px 5px;
+}
