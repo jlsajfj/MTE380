@@ -54,14 +54,16 @@ function drawMap() {
         mapCtx.stroke();
     }
 
-    mapCtx.strokeStyle = "#cb4b16";
+    mapCtx.strokeStyle = "#dc322f";
+
+    mapCtx.strokeStyle = "#b58900";
     mapCtx.lineWidth = 3;
     mapCtx.beginPath();
     mapCtx.moveTo(fx, fy);
     prevPos.forEach( pos => mapCtx.lineTo(pos[0], pos[1]) );
     mapCtx.stroke();
 
-    mapCtx.strokeStyle = "#dc322f";
+    mapCtx.strokeStyle = "#cb4b16";
     mapCtx.beginPath();
     mapCtx.fillStyle = "#002b36";
     mapCtx.beginPath();

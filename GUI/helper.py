@@ -139,7 +139,7 @@ class Positioner:
     # half distance between wheels
     dw = 19
     # adjustmet factor
-    adj = 1.10
+    adj = 1.095
 
     def __init__(
         self,

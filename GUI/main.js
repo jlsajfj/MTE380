@@ -131,6 +131,7 @@ function clearText() {
         chart.update();
     });
 
+    start_time = end_time = 0;
     resetMap();
 }
 
@@ -205,7 +206,7 @@ function updateConfig(new_config) {
         let new_div_conf = '';
         col_conf[i].forEach(op => {
             let conf_name = op[0], conf_val = op[1];
-            let conf_row = `<div id="conf-${conf_name}" class="conf-row"><tt>${conf_name}:</tt><input type="text" value="${conf_val}"><input type="button" value="update" onclick="updateConf('${conf_name}');"></div>`
+            let conf_row = `<div id="conf-${conf_name}" class="conf-row"><tt>${conf_name}:</tt><input type="text" value="${conf_val}" onkeydown="configSend('${conf_name}')"><input type="button" value="update" onclick="updateConf('${conf_name}');"></div>`
             new_div_conf += conf_row;
         });
         div_conf.innerHTML = new_div_conf;
@@ -216,4 +217,12 @@ function updateConf(conf_name) {
     let conf_row = document.getElementById('conf-' + conf_name);
     let new_value = parseFloat(conf_row.childNodes[1].value);
     doSend('set ' + conf_name + ' ' + new_value);
+}
+
+function configSend(val) {
+    console.log(val);
+    if(event.key == 'Enter'){
+        event.preventDefault();
+        updateConf(val);
+    }
 }
