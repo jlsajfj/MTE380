@@ -12,6 +12,7 @@ class Constants:
     SB_NACK: int = 0x07
     SB_STREAM: int = 0x0E
     SB_CONFIG: int = 0x0F
+    SB_SPEED:  int = 0x10
 
     CONFIG_C: str = "Core/Src/config.c"
     STATE_H: str = "Core/Inc/state.h"
@@ -21,6 +22,7 @@ class Constants:
         SB_NACK: "NACK",
         SB_STREAM: "STREAM",
         SB_CONFIG: "CONFIG",
+        SB_SPEED: "SPEED",
     }
 
     FILTERS: Dict[str, int] = {

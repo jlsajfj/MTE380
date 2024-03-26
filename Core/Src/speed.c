@@ -16,11 +16,6 @@ typedef enum {
   SPEED_STATE_RECORD_FAST,
 } speed_state_E;
 
-typedef struct {
-  int32_t count;
-  speed_type_E type;
-} speed_point_S;
-
 static speed_point_S speed_points[MAX_SPEED_POINTS];
 static speed_state_E speed_state;
 static uint16_t speed_num_points;
@@ -66,7 +61,7 @@ void speed_run(void) {
 
 void speed_startRecord(void) {
   speed_num_points = 0;
-  speed_add_point(SPEED_TYPE_FAST);
+  speed_add_point(SPEED_TYPE_SLOW);
   speed_state = SPEED_STATE_RECORD_START;
 }
 
@@ -121,6 +116,13 @@ double speed_fromType(speed_type_E type) {
   }
 
   return config_get(CONFIG_ENTRY_SPEED_SLOW);
+}
+
+const speed_point_S *speed_getPoints(uint16_t *count) {
+  if(count != NULL) {
+    *count = speed_num_points;
+  }
+  return speed_points;
 }
 
 void speed_save(void) {

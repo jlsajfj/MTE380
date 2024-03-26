@@ -5,6 +5,7 @@
 #include "usart.h"
 #include "helper.h"
 #include "config.h"
+#include "speed.h"
 
 #include "stm32f4xx_hal.h"
 
@@ -20,6 +21,7 @@ const char SB_ACK    = 0x06;
 const char SB_NACK   = 0x07;
 const char SB_STREAM = 0x0E;
 const char SB_CONFIG = 0x0F;
+const char SB_SPEED  = 0x10;
 
 typedef struct __attribute__((packed)) {
   uint8_t start_byte;
@@ -87,6 +89,17 @@ void tele_run(void) {
   if(tele_dump) {
     _write(2, &SB_CONFIG, 1);
     _write(2, (char*) config_getPtr(CONFIG_ENTRY_START), sizeof(double) * CONFIG_ENTRY_COUNT);
+
+    uint16_t speed_count = 0;
+    const speed_point_S *speeds = speed_getPoints(&speed_count);
+
+    _write(2, &SB_SPEED, 1);
+    _write(2, (char*) &speed_count, 2);
+    for(uint16_t i = 0; i < speed_count; i++) {
+      _write(2, (char*) &speeds[i].count, sizeof(speeds[i].count));
+      _write(2, (char*) &speeds[i].type, 1);
+    }
+
     tele_dump = false;
   }
 }
