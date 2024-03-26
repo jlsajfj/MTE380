@@ -4,6 +4,7 @@ var start_time = 0;
 var end_time = 0;
 var running = false;
 var current_data = {};
+var current_config = {};
 var state_map = {1: "STANDBY"};
 
 function init() {
@@ -74,12 +75,14 @@ function onMessage(evt) {
         current_data = data.data;
         current_data.tis /= 1000;
         // console.log(current_data.sta);
+        updateData();
         updateCharts();
         updateMap();
         // charts.forEach(chart => addData(chart, data.data.tis, data.data));
         updateState(data.data.sta);
     } else if(data.code === 'CONFIG'){
-        updateConfig(data.data);
+        current_config = data.data;
+        updateConfig();
         // console.log(Object.keys(data.data).length);
         // let config = JSON.stringify(data.data, undefined, 2);
         // console.log(config);
@@ -174,7 +177,8 @@ function addData(chart, label, data) {
     chart.update();
 }
 
-function updateConfig(new_config) {
+function updateConfig() {
+    let new_config = current_config;
     let config_cnt = Object.keys(new_config).length;
     let col_cnt = [0, 0, Math.floor(config_cnt / 3)];
     let rem = config_cnt % 3;
@@ -206,7 +210,7 @@ function updateConfig(new_config) {
         let new_div_conf = '';
         col_conf[i].forEach(op => {
             let conf_name = op[0], conf_val = op[1];
-            let conf_row = `<div id="conf-${conf_name}" class="conf-row"><tt>${conf_name}:</tt><input type="text" value="${conf_val}" onkeydown="configSend('${conf_name}')"><input type="button" value="update" onclick="updateConf('${conf_name}');"></div>`
+            let conf_row = `<div id="conf-${conf_name}" class="conf-row"><tt>${conf_name}:</tt><input type="text" value="${conf_val}" onkeydown="configSend('${conf_name}')" onfocusout="updateConf('${conf_name}');"><input type="button" value="update" onclick="updateConf('${conf_name}');"></div>`
             new_div_conf += conf_row;
         });
         div_conf.innerHTML = new_div_conf;
@@ -225,4 +229,22 @@ function configSend(val) {
         event.preventDefault();
         updateConf(val);
     }
+}
+
+function updateData() {
+    let tot = 2 * (current_config.gain_0 + current_config.gain_1 + current_config.gain_2);
+    let s = -current_data.pd0 * current_config.gain_2;
+    s -= current_data.pd1 * current_config.gain_1;
+    s -= current_data.pd2 * current_config.gain_0;
+    s += current_data.pd3 * current_config.gain_0;
+    s += current_data.pd4 * current_config.gain_1;
+    s += current_data.pd5 * current_config.gain_2;
+    current_data['pdwa'] = s / tot;
+    s = -current_data.pd0;
+    s -= current_data.pd1;
+    s -= current_data.pd2;
+    s += current_data.pd3;
+    s += current_data.pd4;
+    s += current_data.pd5;
+    current_data['pda'] = s / 6;
 }

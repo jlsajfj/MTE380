@@ -75,8 +75,8 @@ let speL = buildChart('Left Target and Actual Speed', 'speChartL', ['mtl', 'msl'
 let speR = buildChart('Right Target and Actual Speed', 'speChartR', ['mtr', 'msr']);
 let bav  = buildChart('Battery Voltage', 'bavChart', ['bav']);
 let sta  = buildChart('Current State', 'staChart', ['sta']);
-let pho  = buildChart('Photo Diodes', 'phoChart', ['pd0', 'pd1', 'pd2', 'pd3', 'pd4', 'pd5']);
 sta.config.options.scales.y.beginAtZero = true;
 sta.config.options.scales.y.max = 18;
-console.log(sta);
-
+let pho  = buildChart('Photo Diodes', 'phoChart', ['pd0', 'pd1', 'pd2', 'pd3', 'pd4', 'pd5']);
+let pdwa  = buildChart('Weight Average of Photo Diodes', 'pdwaChart', ['pdwa']);
+let pda  = buildChart('Average of Photo Diodes', 'pdaChart', ['pda']);

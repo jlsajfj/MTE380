@@ -138,8 +138,10 @@ class Positioner:
     unit_per_motor_count = 100 * math.pi * 28 / 12 / 25.4 / 30 / 20
     # half distance between wheels
     dw = 19
-    # adjustmet factor
-    adj = 1.095
+    # adjustment factor
+    adj = 1.09
+    # uneven adjustment
+    a_l, a_r = 1.10, 1.00
 
     def __init__(
         self,
@@ -164,8 +166,8 @@ class Positioner:
         return self.ry + Positioner.m_dist * math.sin(self.t)
 
     def update(self, el: float, er: float) -> None:
-        el *= Positioner.unit_per_motor_count * Positioner.adj
-        er *= Positioner.unit_per_motor_count * Positioner.adj
+        el *= Positioner.unit_per_motor_count * Positioner.adj * Positioner.a_l
+        er *= Positioner.unit_per_motor_count * Positioner.adj * Positioner.a_r
         dl = el - self.el
         dr = er - self.er
 
