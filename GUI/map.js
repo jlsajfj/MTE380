@@ -8,6 +8,24 @@ var fx = 0.0, fy = 0.0;
 var cx = 0.0, cy = 0.0;
 var rx = 0.0, ry = 0.0;
 var runner;
+const path = [
+    [550, 550],
+    [100, 550],
+    [50, 500],
+    [50, 100],
+    [100, 50],
+    [150, 100],
+    [200, 150],
+    [250, 100],
+    [300, 50],
+    [500, 50],
+    [550, 100],
+    [550, 200],
+    [500, 250],
+    [400, 250],
+    [350, 300],
+    [350, 350],
+];
 
 function mapInit() {
     runner = setInterval(drawMap, 100);
@@ -38,6 +56,15 @@ function updateMap() {
     prevPos.push([px, py]);
 }
 
+function fillCircle(x, y, s, c){
+    mapCtx.beginPath();
+    mapCtx.lineWidth = 0.1;
+    mapCtx.arc(x, y, s, 0, 2*Math.PI);
+    mapCtx.fillStyle = c;
+    mapCtx.fill();
+    mapCtx.stroke();
+}
+
 function drawMap() {
     mapCtx.clearRect(0, 0, 600, 600);
     mapCtx.lineWidth = 1;
@@ -54,25 +81,62 @@ function drawMap() {
         mapCtx.stroke();
     }
 
+    // travel path
     mapCtx.strokeStyle = "#dc322f";
     mapCtx.lineWidth = 8;
     mapCtx.lineCap = "square";
     mapCtx.beginPath();
     mapCtx.moveTo(550, 525);
     mapCtx.lineTo(550, 575);
-    mapCtx.moveTo(550, 550);
-    mapCtx.lineTo(100, 550);
-    mapCtx.arc(100, 500, 50, Math.PI/2, Math.PI);
-    mapCtx.arc(100, 100, 50, Math.PI, 0);
-    mapCtx.arc(200, 100, 50, Math.PI, 0, true);
-    mapCtx.arc(300, 100, 50, Math.PI, 3*Math.PI/2);
-    mapCtx.arc(500, 100, 50, 3*Math.PI/2, 0);
-    mapCtx.arc(500, 200, 50, 0, Math.PI/2);
-    mapCtx.arc(400, 300, 50, 3*Math.PI/2, Math.PI, true);
-    //mapCtx.moveTo(500, 250);
-    //mapCtx.lineTo(400, 250);
     mapCtx.stroke();
 
+    mapCtx.beginPath();
+    mapCtx.moveTo(...path[0]);
+    path.forEach( (p, i) => {
+        if(i != 0){
+            if(p[0] - path[i - 1][0] == 0 || p[1] - path[i - 1][1] == 0){
+                mapCtx.lineTo(...p);
+            } else {
+                let xx = (p[0] % 100 == 0 ? p[0] : path[i - 1][0]);
+                let yy = (p[1] % 100 == 0 ? p[1] : path[i - 1][1]);
+                let dx = p[0] - path[i - 1][0];
+                let dy = p[1] - path[i - 1][1];
+                let ax = p[0] - xx, ay = p[1] - yy;
+                let bx = path[i - 1][0] - xx, by = path[i - 1][1] - yy;
+                let cp = ax * by - bx * ay;
+                if(cp < 0){
+                    if(dx < 0 && dy > 0){
+                        mapCtx.arc(xx, yy, 50, 0, Math.PI / 2);
+                    } else if(dx < 0 && dy < 0) {
+                        mapCtx.arc(xx, yy, 50, Math.PI / 2, Math.PI);
+                    } else if(dx > 0 && dy < 0) {
+                        mapCtx.arc(xx, yy, 50, Math.PI, 3 * Math.PI / 2);
+                    } else if(dx > 0 && dy > 0) {
+                        mapCtx.arc(xx, yy, 50, 3 * Math.PI / 2, 0);
+                    }
+                } else {
+                    if(dx < 0 && dy > 0){
+                        mapCtx.arc(xx, yy, 50, 3 * Math.PI / 2, Math.PI, true);
+                    } else if(dx < 0 && dy < 0) {
+                        mapCtx.arc(xx, yy, 50, 0, 3 * Math.PI / 2, true);
+                    } else if(dx > 0 && dy < 0) {
+                        mapCtx.arc(xx, yy, 50, Math.PI / 2, 0, true);
+                    } else if(dx > 0 && dy > 0) {
+                        mapCtx.arc(xx, yy, 50, Math.PI, Math.PI / 2, true);
+                    }
+                }
+            }
+        }
+    });
+    mapCtx.stroke();
+
+    // target
+    fillCircle(350, 350, 28, "#268bd2");
+    fillCircle(350, 350, 21, "#002b36");
+    fillCircle(350, 350, 14, "#dc322f");
+    fillCircle(350, 350, 7, "#002b36");
+
+    // robot path
     mapCtx.strokeStyle = "#b58900";
     mapCtx.lineWidth = 3;
     mapCtx.lineCap = "butt";
