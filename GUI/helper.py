@@ -142,7 +142,7 @@ class Positioner:
     def __init__(
         self,
         x: float = 565.625,
-        y: float = 50.0,
+        y: float = 550.0,
         el: float = 0,
         er: float = 0,
         t: float = math.pi,
@@ -176,7 +176,7 @@ class Positioner:
         dr = er - self.er
 
         d = (dl + dr) / 2
-        dt = (dl + dr) / (2 * Positioner.dw)
+        dt = (dr - dl) / (2 * Positioner.dw)
 
         self.rx += d * math.cos(self.t + dt / 2)
         self.ry += d * math.sin(self.t + dt / 2)

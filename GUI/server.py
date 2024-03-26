@@ -1,4 +1,5 @@
 from handler import Handler
+import math
 from robot import Robot
 import threading
 from SimpleWebSocketServer import SimpleWebSocketServer
@@ -54,13 +55,14 @@ try:
                 send(code, f.get())
                 p_state = data["sta"]
 
+            p.update(f.get("mel"), f.get("mer"))
             cnt += 1
             if cnt >= 10:
-                p.update(f.get("mel"), f.get("mer"))
+                # print("{:.2f} {:.2f} {:.2f}".format(p.tx, p.ty, math.degrees(p.t)))
                 cnt = 0
                 f_data = f.get()
-                f_data["px"] = p.tx
-                f_data["py"] = p.ty
+                f_data["px"] = p.px
+                f_data["py"] = p.py
 
                 send(code, f_data)
         elif code == Constants.SB_CONFIG:
