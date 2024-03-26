@@ -33,7 +33,7 @@ void command_init(void) {
 }
 
 void command_run(void) {
-  char sarg[64];
+  char sarg[64] = {0};
   double darg;
   bool command_success = true;
 
@@ -53,8 +53,11 @@ void command_run(void) {
       motor_stop(M1);
       motor_stop(M2);
 
+    } else if(MATCH_CMD_S("burn the motor")) {
+      music_play(sarg);
+
     } else if(MATCH_CMD("burn the motor")) {
-      music_play();
+      music_play(NULL);
 
     } else if(MATCH_CMD("pause")) {
       music_pause();

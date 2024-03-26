@@ -45,7 +45,7 @@ void sm_run(void) {
       speed_type_E speed_type = speed_fromCount(count);
       control_setTarget(speed_fromType(speed_type) * config_get(CONFIG_ENTRY_MOTOR_SPEED));
 
-      if(speed_type == SPEED_TYPE_FINISH && mean < mean_th && var < var_th) {
+      if(speed_type == SPEED_TYPE_FINISH && mean > mean_th && var < var_th) {
         sm_setState(SM_STATE_TARGET_BRAKE);
       }
 
