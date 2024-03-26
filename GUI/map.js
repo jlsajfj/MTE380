@@ -27,6 +27,20 @@ const path = [
     [350, 350],
 ];
 
+var pathLength = 0;
+path.forEach( (p, i) => {
+    if(i != 0){
+        if(p[0] - path[i - 1][0] == 0 || p[1] - path[i - 1][1] == 0){
+            pathLength += Math.abs(p[0] + p[1] - path[i - 1][0] - path[i - 1][1]);
+        } else {
+            pathLength += 78.53982;
+        }
+    }
+});
+
+function curCoords(percentage) {
+}
+
 function mapInit() {
     runner = setInterval(drawMap, 100);
     drawMap();
@@ -135,6 +149,9 @@ function drawMap() {
     fillCircle(350, 350, 21, "#002b36");
     fillCircle(350, 350, 14, "#dc322f");
     fillCircle(350, 350, 7, "#002b36");
+
+    // path tracer
+    fillCircle(550, 550, 6, "#859900");
 
     // robot path
     mapCtx.strokeStyle = "#b58900";
