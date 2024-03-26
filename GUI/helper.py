@@ -141,7 +141,7 @@ class Positioner:
     # adjustment factor
     adj = 1.09
     # uneven adjustment
-    a_l, a_r = 1.10, 1.00
+    a_l, a_r = 1.00, 1.00
 
     def __init__(
         self,

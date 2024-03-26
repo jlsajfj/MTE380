@@ -55,9 +55,27 @@ function drawMap() {
     }
 
     mapCtx.strokeStyle = "#dc322f";
+    mapCtx.lineWidth = 8;
+    mapCtx.lineCap = "square";
+    mapCtx.beginPath();
+    mapCtx.moveTo(550, 525);
+    mapCtx.lineTo(550, 575);
+    mapCtx.moveTo(550, 550);
+    mapCtx.lineTo(100, 550);
+    mapCtx.arc(100, 500, 50, Math.PI/2, Math.PI);
+    mapCtx.arc(100, 100, 50, Math.PI, 0);
+    mapCtx.arc(200, 100, 50, Math.PI, 0, true);
+    mapCtx.arc(300, 100, 50, Math.PI, 3*Math.PI/2);
+    mapCtx.arc(500, 100, 50, 3*Math.PI/2, 0);
+    mapCtx.arc(500, 200, 50, 0, Math.PI/2);
+    mapCtx.arc(400, 300, 50, 3*Math.PI/2, Math.PI, true);
+    //mapCtx.moveTo(500, 250);
+    //mapCtx.lineTo(400, 250);
+    mapCtx.stroke();
 
     mapCtx.strokeStyle = "#b58900";
     mapCtx.lineWidth = 3;
+    mapCtx.lineCap = "butt";
     mapCtx.beginPath();
     mapCtx.moveTo(fx, fy);
     prevPos.forEach( pos => mapCtx.lineTo(pos[0], pos[1]) );
