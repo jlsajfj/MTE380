@@ -103,7 +103,6 @@ void motor_init(void) {
 
     HAL_TIM_PWM_Start(motor->pwm_timer, motor->pwm_timer_channel);
     HAL_TIM_Encoder_Start(motor->enc_timer, TIM_CHANNEL_ALL);
-    HAL_TIM_Base_Start_IT(motor->buzz_timer);
   }
 }
 
@@ -160,13 +159,25 @@ void motor_timerIT(TIM_HandleTypeDef *htim) {
 }
 
 void motor_setSpeed(motor_E motor_id, double speed) {
+  const motor_definition_S *motor = &motors[motor_id];
   motor_data_S *data = &motor_datas[motor_id];
+  HAL_TIM_Base_Stop(motor->buzz_timer);
   data->speed_target = speed;
   data->mode = MOTOR_MODE_SPEED;
 }
 
-void motor_stop(motor_E motor_id) {
+void motor_setPWM(motor_E motor_id, double pwm) {
+  const motor_definition_S *motor = &motors[motor_id];
   motor_data_S *data = &motor_datas[motor_id];
+  HAL_TIM_Base_Stop(motor->buzz_timer);
+  data->mode = MOTOR_MODE_PWM;
+  motor_setPWM_private(motor_id, pwm);
+}
+
+void motor_stop(motor_E motor_id) {
+  const motor_definition_S *motor = &motors[motor_id];
+  motor_data_S *data = &motor_datas[motor_id];
+  HAL_TIM_Base_Stop(motor->buzz_timer);
   data->mode = MOTOR_MODE_STOP;
 }
 
@@ -177,6 +188,7 @@ void motor_buzz(motor_E motor_id, double freq) {
   data->mode = MOTOR_MODE_BUZZ;
   motor_setPWM_private(motor_id, 1.0);
   __HAL_TIM_SET_AUTORELOAD(motor->buzz_timer, period);
+  HAL_TIM_Base_Start_IT(motor->buzz_timer);
 }
 
 void motor_resetCount(motor_E motor_id) {
@@ -196,12 +208,6 @@ double motor_getSpeed(motor_E motor_id) {
 
 double motor_getSpeedTarget(motor_E motor_id) {
   return motor_datas[motor_id].speed_target;
-}
-
-void motor_setPWM(motor_E motor_id, double pwm) {
-  motor_data_S *data = &motor_datas[motor_id];
-  data->mode = MOTOR_MODE_PWM;
-  motor_setPWM_private(motor_id, pwm);
 }
 
 bool motor_isStable(motor_E motor_id) {
