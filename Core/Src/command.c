@@ -53,20 +53,6 @@ void command_run(void) {
       motor_stop(M1);
       motor_stop(M2);
 
-    } else if(MATCH_CMD_S("burn the motor")) {
-      music_play(sarg);
-
-    } else if(MATCH_CMD("burn the motor")) {
-      music_play(NULL);
-
-    } else if(MATCH_CMD("pause")) {
-      music_pause();
-
-    } else if(MATCH_CMD_D("buzz")) {
-      control_setState(CONTROL_STATE_NEUTRAL);
-      motor_buzz(M1, darg);
-      motor_buzz(M2, darg);
-
     } else if(MATCH_CMD("calibrate")) {
       sm_setState(SM_STATE_CALIBRATE);
 
