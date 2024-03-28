@@ -161,7 +161,7 @@ void control_run(void) {
 
       int32_t c1 = motor_getCount(M1);
       int32_t c2 = motor_getCount(M2);
-      double theta = (c2 - c1) / MOTOR_MM_TO_COUNT(wheel_dist);
+      double theta = (c2 - c1) / MOTOR_MM_TO_COUNT(wheel_dist) * 2;
 
       double ratio = 1 - wheel_dist / radius / 2;
 
@@ -187,12 +187,14 @@ void control_run(void) {
   control_reset = false;
 
   if(debug) {
-    printf("%10ld %10ld %10ld %10.4f %10.4f\n",
+    printf("%10ld %10ld %10ld %10.4f %10.4f %10.4f %10.4f\n",
       HAL_GetTick(),
       motor_getCount(M1),
       motor_getCount(M2),
       motor_getSpeed(M1),
-      motor_getSpeed(M2)
+      motor_getSpeed(M2),
+      sensor_getMean(),
+      sensor_getResult()
     );
   }
 }

@@ -20,7 +20,7 @@ static speed_point_S speed_points[MAX_SPEED_POINTS];
 static speed_state_E speed_state;
 static uint16_t speed_num_points;
 
-static void speed_add_point(speed_type_E);
+static void speed_addPoint(speed_type_E);
 
 void speed_init(void) {
   speed_state = SPEED_STATE_NORMAL;
@@ -45,14 +45,14 @@ void speed_run(void) {
 
     case SPEED_STATE_RECORD_FAST:
       if(error > rise) {
-        speed_add_point(SPEED_TYPE_SLOW);
+        speed_addPoint(SPEED_TYPE_SLOW);
         speed_state = SPEED_STATE_RECORD_SLOW;
       }
       break;
 
     case SPEED_STATE_RECORD_SLOW:
       if(error < fall) {
-        speed_add_point(SPEED_TYPE_FAST);
+        speed_addPoint(SPEED_TYPE_FAST);
         speed_state = SPEED_STATE_RECORD_FAST;
       }
       break;
@@ -61,12 +61,13 @@ void speed_run(void) {
 
 void speed_startRecord(void) {
   speed_num_points = 0;
-  speed_add_point(SPEED_TYPE_FAST);
+  speed_addPoint(SPEED_TYPE_SLOW);
+  speed_addPoint(SPEED_TYPE_FAST);
   speed_state = SPEED_STATE_RECORD_START;
 }
 
 void speed_stopRecord(void) {
-  speed_add_point(SPEED_TYPE_FINISH);
+  speed_addPoint(SPEED_TYPE_FINISH);
   speed_state = SPEED_STATE_NORMAL;
 }
 
@@ -151,7 +152,7 @@ void speed_reset(void) {
   speed_num_points = 0;
 }
 
-static void speed_add_point(speed_type_E type) {
+static void speed_addPoint(speed_type_E type) {
   if(speed_num_points < MAX_SPEED_POINTS) {
     int32_t count = (motor_getCount(M1) + motor_getCount(M2)) / 2;
     printf("%10lf %d\n", count / MOTOR_COUNT_PER_MM, type);

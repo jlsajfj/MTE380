@@ -33,7 +33,7 @@ def run():
     robot.send(f"set sp {kp.get()}")
     robot.send(f"set si {ki.get()}")
     robot.send(f"set sd {kd.get()}")
-    robot.send("set sa 0.9")
+    robot.send(f"set sa {ka.get()}")
     robot.send("speed 6")
 
     time.sleep(1)
@@ -87,6 +87,10 @@ kd = DoubleVar(value=0)
 Label(stack, text="Kd").grid(row=2, column=0)
 Spinbox(**spinargs, textvariable=kd).grid(row=2, column=1)
 
+ka = DoubleVar(value=0)
+Label(stack, text="Ka").grid(row=3, column=0)
+Spinbox(**spinargs, textvariable=ka).grid(row=3, column=1)
+
 stack.grid(row=0, column=0)
 run_btn.grid(row=0, column=1, padx=10)
 save_btn.grid(row=0, column=2, padx=10)
@@ -124,6 +128,7 @@ while True:
         kp.set(data["sp"])
         ki.set(data["si"])
         kd.set(data["sd"])
+        ka.set(data["sa"])
         break
 
 rt = Thread(target=read_thread)

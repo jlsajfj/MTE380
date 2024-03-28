@@ -71,7 +71,7 @@ void compass_run(void) {
       struct easyMatrix V = {
         .rows = 2,
         .cols = 1,
-        .element = config_getPtr(CONFIG_ENTRY_COMPASS_V0),
+        .element = config_getPtr(CONFIG_ENTRY_NONE),
       };
 
       struct easyMatrix W = {
@@ -240,7 +240,7 @@ static void compass_computeCal(void) {
   M_data[3] = x_data[2];
 
   // V = -1/2 M^(-1) [x[3]; x[4]]
-  double *V_data = config_getPtr(CONFIG_ENTRY_COMPASS_V0);
+  double *V_data = config_getPtr(CONFIG_ENTRY_NONE);
   struct easyMatrix V = {
     .rows = 2,
     .cols = 1,
