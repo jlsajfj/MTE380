@@ -61,7 +61,7 @@ void speed_run(void) {
 
 void speed_startRecord(void) {
   speed_num_points = 0;
-  speed_add_point(SPEED_TYPE_SLOW);
+  speed_add_point(SPEED_TYPE_FAST);
   speed_state = SPEED_STATE_RECORD_START;
 }
 
@@ -72,7 +72,7 @@ void speed_stopRecord(void) {
 
 speed_type_E speed_fromCount(int32_t count) {
   double slipped_count = count * config_get(CONFIG_ENTRY_SPEED_SLIP);
-  speed_type_E type = SPEED_TYPE_SLOW;
+  speed_type_E type = SPEED_TYPE_FINISH;
 
   for(uint32_t i = 0; i < speed_num_points; i++) {
     int32_t c = speed_points[i].count;

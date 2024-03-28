@@ -7,6 +7,7 @@
 #include "motor.h"
 #include "helper.h"
 #include "speed.h"
+#include "telemetry.h"
 
 #include <stdint.h>
 
@@ -40,8 +41,8 @@ void sm_run(void) {
       speed_type_E speed_type = speed_fromCount(count);
       control_setTarget(speed_fromType(speed_type) * config_get(CONFIG_ENTRY_MOTOR_SPEED));
 
-      if(speed_type == SPEED_TYPE_FINISH && mean > mean_th && var < var_th) {
-        sm_setState(SM_STATE_TARGET_BRAKE);
+      if(speed_type == SPEED_TYPE_FINISH && mean < mean_th && var < var_th) {
+        sm_setState(SM_STATE_PUSH_1);
       }
 
       break;
@@ -61,7 +62,7 @@ void sm_run(void) {
 
     case SM_STATE_AIM:
       if(control_state == CONTROL_STATE_NEUTRAL || sm_state_time > 5000) {
-        sm_setState(SM_STATE_KICK);
+        sm_setState(SM_STATE_PUSH_2);
       }
       break;
 
@@ -187,6 +188,7 @@ void sm_setState(sm_state_E state) {
 
       case SM_STATE_RECORD:
         speed_stopRecord();
+        tele_dumpConfig();
         break;
 
       default:

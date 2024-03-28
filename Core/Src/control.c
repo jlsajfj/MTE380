@@ -131,24 +131,21 @@ void control_run(void) {
     case CONTROL_STATE_TURN:
     {
       double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
-      double wheel_dist = config_get(CONFIG_ENTRY_WHEEL_DIST) / 2;
-      double target = MOTOR_MM_TO_COUNT(wheel_dist * control_target / 180.0 * M_PI);
+      double wheel_dist = config_get(CONFIG_ENTRY_WHEEL_DIST);
+      double target = control_target / 180.0 * M_PI;
+
+      int32_t c1 = motor_getCount(M1);
+      int32_t c2 = motor_getCount(M2);
+      double theta = (c2 - c1) / MOTOR_MM_TO_COUNT(wheel_dist);
 
       if(target < 0) {
         speed = -speed;
       }
 
-      bool finished = true;
-      for(motor_E motor = M1; motor <= M2; motor++) {
-        if(abs(target) > abs(motor_getCount(motor))) {
-          motor_setSpeed(motor, motor == M1 ? -speed : speed);
-          finished = false;
-        } else {
-          motor_stop(motor);
-        }
-      }
+      motor_setSpeed(M1, -speed);
+      motor_setSpeed(M2,  speed);
 
-      if(finished) {
+      if(fabs(theta) > fabs(target)) {
         control_setState(CONTROL_STATE_NEUTRAL);
       }
 
@@ -158,31 +155,25 @@ void control_run(void) {
     case CONTROL_STATE_ARC:
     {
       double radius = config_get(CONFIG_ENTRY_ARC_RADIUS);
-      double wheel_dist = config_get(CONFIG_ENTRY_WHEEL_DIST) / 2;
-      double ratio = 1 - wheel_dist / radius;
+      double wheel_dist = config_get(CONFIG_ENTRY_WHEEL_DIST);
       double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
-      double target = MOTOR_MM_TO_COUNT(radius * fabs(control_target) / 180.0 * M_PI * 2);
+      double target = control_target / 180.0 * M_PI;
 
-      double ratios[MOTOR_COUNT];
+      int32_t c1 = motor_getCount(M1);
+      int32_t c2 = motor_getCount(M2);
+      double theta = (c2 - c1) / MOTOR_MM_TO_COUNT(wheel_dist);
+
+      double ratio = 1 - wheel_dist / radius / 2;
+
       if(control_target < 0) {
-        ratios[M1] = 1;
-        ratios[M2] = ratio;
+        motor_setSpeed(M1, speed);
+        motor_setSpeed(M2, speed * ratio);
       } else {
-        ratios[M1] = ratio;
-        ratios[M2] = 1;
+        motor_setSpeed(M1, speed * ratio);
+        motor_setSpeed(M2, speed);
       }
 
-      bool finished = true;
-      for(motor_E motor = M1; motor <= M2; motor++) {
-        if(fabs(target * ratios[motor]) > abs(motor_getCount(motor))) {
-          motor_setSpeed(motor, speed * ratios[motor]);
-          finished = false;
-        } else {
-          motor_stop(motor);
-        }
-      }
-
-      if(finished) {
+      if(fabs(theta) > fabs(target)) {
         control_setState(CONTROL_STATE_NEUTRAL);
       }
 

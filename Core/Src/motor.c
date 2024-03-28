@@ -56,7 +56,7 @@ static const motor_definition_S motors[MOTOR_COUNT] = {
     .enc_reg           = &TIM1->CNT,
     .enc_timer         = &htim1,
     .buzz_timer        = &htim9,
-    .flip_dir          = true,
+    .flip_dir          = false,
     .flip_enc          = false,
   },
   [M2] = {
@@ -68,7 +68,7 @@ static const motor_definition_S motors[MOTOR_COUNT] = {
     .enc_reg           = &TIM3->CNT,
     .enc_timer         = &htim3,
     .buzz_timer        = &htim10,
-    .flip_dir          = false,
+    .flip_dir          = true,
     .flip_enc          = true,
   },
 };
