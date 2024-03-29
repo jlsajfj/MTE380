@@ -1,10 +1,11 @@
+import asyncio
 import os
 import re
+import struct
 import sys
 import time
+
 import serial
-import struct
-import asyncio
 import websockets
 
 SYNC_COUNT = 50

@@ -1,6 +1,6 @@
+from celery import Celery
 from flask import Flask
 from flask_socketio import SocketIO, emit
-from celery import Celery
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "there is no secret"

@@ -1,5 +1,7 @@
-from celery import Celery
 import struct
+
+from celery import Celery
+
 from server import update_data
 
 app = Celery("writer", backend="rpc://", broker="pyamqp://")

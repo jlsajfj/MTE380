@@ -1,11 +1,13 @@
-from handler import Handler
-import math
-from robot import Robot
-import threading
-from SimpleWebSocketServer import SimpleWebSocketServer
-import sys
 import json
+import math
+import sys
+import threading
+
+from SimpleWebSocketServer import SimpleWebSocketServer
+
+from handler import Handler
 from helper import Constants, Filters, Positioner
+from robot import Robot
 
 if len(sys.argv) > 1:
     r = Robot(sys.argv[1])

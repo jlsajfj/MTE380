@@ -1,9 +1,11 @@
-import serial
 import struct
 import sys
 import threading
 import time
 from enum import Enum
+
+import serial
+
 from helper import Constants
 
 
@@ -160,7 +162,10 @@ class Robot:
                     continue
 
                 data = self.s.read(count * 5)
-                speed_points = [{'count': p[0], 'speed': p[1]} for p in zip(*[iter(struct.unpack("<" + count * "iB", data))]*2)]
+                speed_points = [
+                    {"count": p[0], "speed": p[1]}
+                    for p in zip(*[iter(struct.unpack("<" + count * "iB", data))] * 2)
+                ]
 
                 self.state = Robot.State.START
                 return Constants.SB_SPEED, speed_points

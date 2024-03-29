@@ -1,5 +1,6 @@
-from robot import Robot, SB_ACK, SB_NACK, SB_STREAM, SB_CONFIG
-from writer import ack, nack, stream, config
+from writer import ack, config, nack, stream
+
+from robot import SB_ACK, SB_CONFIG, SB_NACK, SB_STREAM, Robot
 
 func_map = {
     SB_ACK: ack,

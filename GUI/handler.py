@@ -1,9 +1,11 @@
-from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
+import json
+import threading
 import time
 from random import randint
-import threading
+
+from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
+
 from helper import Constants
-import json
 
 
 class Handler(WebSocket):
