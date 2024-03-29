@@ -48,6 +48,7 @@ void music_init(void) {
 }
 
 void music_run(void) {
+  if(ARR_SIZE(music_scores) == 0) return;
   switch(music_state) {
     case MUSIC_STATE_PLAY:
     {

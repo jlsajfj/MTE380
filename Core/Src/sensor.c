@@ -54,8 +54,6 @@ void sensor_run(void) {
       switch(sensor_state) {
         case SENSOR_STATE_RUNNING:
         {
-          double total_gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0) + config_get(CONFIG_ENTRY_SENSOR_GAIN_1) + config_get(CONFIG_ENTRY_SENSOR_GAIN_2);
-
           double result = 0.0;
           double sum = 0.0;
           double ssum = 0.0;
@@ -75,7 +73,7 @@ void sensor_run(void) {
 
             sum += sensor_values[i];
             ssum += sensor_values[i] * sensor_values[i];
-            result += SATURATE(sensor_values[i], 0, 1) * gain / total_gain;
+            result += SATURATE(sensor_values[i], 0, 1) * gain;
 
             //printf("%11.4f", sensor_values[i]);
           }
