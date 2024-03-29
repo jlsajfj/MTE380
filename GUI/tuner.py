@@ -1,14 +1,16 @@
-import sys, os, fcntl, time
-
+import fcntl
+import os
+import sys
+import time
 from threading import Thread
 from tkinter import *
 
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 
+from helper import SB, Constants
 from robot import Robot
-from helper import Constants
 
 if len(sys.argv) < 2:
     print("input serial port")
@@ -112,7 +114,7 @@ window.grid_columnconfigure(0, weight=1)
 def read_thread():
     while robot.s is not None:
         start, data = robot.read()
-        if recording and start == Constants.SB_STREAM:
+        if recording and start == SB.STREAM:
             data_t.append(data["tis"])
             data_speed1.append(data["msl"])
             data_speed2.append(data["msr"])
@@ -124,7 +126,7 @@ robot.send("get")
 while True:
     start, data = robot.read()
 
-    if start == Constants.SB_CONFIG:
+    if start == SB.CONFIG:
         kp.set(data["sp"])
         ki.set(data["si"])
         kd.set(data["sd"])

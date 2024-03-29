@@ -2,28 +2,24 @@ import math
 import os
 import re
 from collections import deque
+from enum import Enum
 from typing import Dict, List, Optional
+
+
+class SB(Enum):
+    SYNC: int = 0x05
+    ACK: int = 0x06
+    NACK: int = 0x07
+    STREAM: int = 0x0E
+    CONFIG: int = 0x0F
+    SPEED: int = 0x10
 
 
 class Constants:
     SYNC_COUNT: int = 10
-    SB_SYNC: int = 0x05
-    SB_ACK: int = 0x06
-    SB_NACK: int = 0x07
-    SB_STREAM: int = 0x0E
-    SB_CONFIG: int = 0x0F
-    SB_SPEED: int = 0x10
 
     CONFIG_C: str = "Core/Src/config.c"
     STATE_H: str = "Core/Inc/state.h"
-
-    CODE_MAP: Dict[int, str] = {
-        SB_ACK: "ACK",
-        SB_NACK: "NACK",
-        SB_STREAM: "STREAM",
-        SB_CONFIG: "CONFIG",
-        SB_SPEED: "SPEED",
-    }
 
     FILTERS: Dict[str, int] = {
         "msl": 5,

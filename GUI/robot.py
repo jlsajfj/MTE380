@@ -6,7 +6,7 @@ from enum import Enum
 
 import serial
 
-from helper import Constants
+from helper import SB, Constants
 
 
 class Robot:
@@ -54,7 +54,7 @@ class Robot:
                     continue
 
                 ack = self.s.read(1)[0]
-                if ack == Constants.SB_SYNC:
+                if ack == SB.SYNC:
                     sync_cnt += 1
                 else:
                     sync_cnt = 0
@@ -70,30 +70,30 @@ class Robot:
 
                 start = self.s.read(1)[0]
 
-                if start == Constants.SB_SYNC:
+                if start == SB.SYNC:
                     pass
 
-                elif start == Constants.SB_ACK:
+                elif start == SB.ACK:
                     with self.send_lock:
                         self.cmd_ack = True
                         self.send_lock.notify()
 
                     return start, None
 
-                elif start == Constants.SB_NACK:
+                elif start == SB.NACK:
                     with self.send_lock:
                         self.cmd_ack = False
                         self.send_lock.notify()
 
                     return start, None
 
-                elif start == Constants.SB_STREAM:
+                elif start == SB.STREAM:
                     self.state = Robot.State.STREAM
 
-                elif start == Constants.SB_CONFIG:
+                elif start == SB.CONFIG:
                     self.state = Robot.State.CONFIG
 
-                elif start == Constants.SB_SPEED:
+                elif start == SB.SPEED:
                     self.state = Robot.State.SPEED
 
                 else:
@@ -137,7 +137,7 @@ class Robot:
                 )
 
                 self.state = Robot.State.START
-                return Constants.SB_STREAM, data_stream
+                return SB.STREAM, data_stream
 
             elif self.state == Robot.State.CONFIG:
                 count = len(self.config_names)
@@ -149,7 +149,7 @@ class Robot:
                 config = dict(zip(self.config_names, struct.unpack(f"<{count}d", data)))
 
                 self.state = Robot.State.START
-                return Constants.SB_CONFIG, config
+                return SB.CONFIG, config
 
             elif self.state == Robot.State.SPEED:
                 if self.s.in_waiting < 2:
@@ -168,10 +168,10 @@ class Robot:
                 ]
 
                 self.state = Robot.State.START
-                return Constants.SB_SPEED, speed_points
+                return SB.SPEED, speed_points
 
         self.state = Robot.State.SYNCING
-        return Constants.SB_NACK, None
+        return SB.NACK, None
 
     def send(self, cmd: str, ignore_ack: bool = False, timeout: float = 1) -> bool:
         print("sending", cmd)

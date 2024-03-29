@@ -1,12 +1,11 @@
 import json
-import math
 import sys
 import threading
 
 from SimpleWebSocketServer import SimpleWebSocketServer
 
 from handler import Handler
-from helper import Constants, Filters, Positioner
+from helper import SB, Filters, Positioner
 from robot import Robot
 
 if len(sys.argv) > 1:
@@ -29,7 +28,7 @@ Handler.callback = send_robot
 
 def send(code, data):
     packed_data = {
-        "code": Constants.CODE_MAP[code],
+        "code": SB(code).name,
         "data": data,
     }
 
@@ -49,7 +48,7 @@ try:
     while True:
         code, data = r.read()
         # print(data)
-        if code == Constants.SB_STREAM:
+        if code == SB.STREAM:
             data["bav"] *= 9 / 256
             f.process(data)
 
@@ -62,7 +61,6 @@ try:
             p.update(f.get("mel"), f.get("mer"))
             cnt += 1
             if cnt >= 10:
-                # print("{:.2f} {:.2f} {:.2f}".format(p.tx, p.ty, math.degrees(p.t)))
                 cnt = 0
                 f_data = f.get()
                 f_data["px"] = p.px
@@ -71,7 +69,7 @@ try:
                 f_data["ry"] = p.ry
 
                 send(code, f_data)
-        elif code == Constants.SB_CONFIG:
+        elif code == SB.CONFIG:
             print("config")
             Handler.cur_config = data
             send(code, data)
