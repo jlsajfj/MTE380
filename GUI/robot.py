@@ -54,7 +54,7 @@ class Robot:
                     continue
 
                 ack = self.s.read(1)[0]
-                if ack == SB.SYNC:
+                if ack == SB.SYNC.value:
                     sync_cnt += 1
                 else:
                     sync_cnt = 0
@@ -70,30 +70,30 @@ class Robot:
 
                 start = self.s.read(1)[0]
 
-                if start == SB.SYNC:
+                if start == SB.SYNC.value:
                     pass
 
-                elif start == SB.ACK:
+                elif start == SB.ACK.value:
                     with self.send_lock:
                         self.cmd_ack = True
                         self.send_lock.notify()
 
                     return start, None
 
-                elif start == SB.NACK:
+                elif start == SB.NACK.value:
                     with self.send_lock:
                         self.cmd_ack = False
                         self.send_lock.notify()
 
                     return start, None
 
-                elif start == SB.STREAM:
+                elif start == SB.STREAM.value:
                     self.state = Robot.State.STREAM
 
-                elif start == SB.CONFIG:
+                elif start == SB.CONFIG.value:
                     self.state = Robot.State.CONFIG
 
-                elif start == SB.SPEED:
+                elif start == SB.SPEED.value:
                     self.state = Robot.State.SPEED
 
                 else:
