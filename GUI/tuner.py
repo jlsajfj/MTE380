@@ -114,7 +114,7 @@ window.grid_columnconfigure(0, weight=1)
 def read_thread():
     while robot.s is not None:
         start, data = robot.read()
-        if recording and start == SB.STREAM:
+        if recording and start == SB.STREAM.value:
             data_t.append(data["tis"])
             data_speed1.append(data["msl"])
             data_speed2.append(data["msr"])
@@ -126,7 +126,7 @@ robot.send("get")
 while True:
     start, data = robot.read()
 
-    if start == SB.CONFIG:
+    if start == SB.CONFIG.value:
         kp.set(data["sp"])
         ki.set(data["si"])
         kd.set(data["sd"])
