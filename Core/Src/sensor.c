@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 
 #define ADC_COUNT 7
 
@@ -47,9 +48,7 @@ void sensor_run(void) {
       double alpha = config_get(CONFIG_ENTRY_SENSOR_ALPHA);
       for(uint16_t i = 0; i < ADC_COUNT; i++) {
         adc_reading[i] = alpha * adc_reading[i] + (1 - alpha) * adc_reading_raw[i];
-        //printf("%11.4f", adc_reading[i]);
       }
-      //puts("");
 
       switch(sensor_state) {
         case SENSOR_STATE_RUNNING:
@@ -57,31 +56,57 @@ void sensor_run(void) {
           double result = 0.0;
           double sum = 0.0;
           double ssum = 0.0;
+          double mid_min = 0.0;
 
           for(uint16_t i = 0; i < SENSOR_PD_COUNT; i++) {
             double white = config_get(CONFIG_ENTRY_SENSOR_WHITE_0 + i);
             double black = config_get(CONFIG_ENTRY_SENSOR_BLACK_0 + i);
 
-            double gain = 1.0;
-            if(i <= 2) {
-              gain = -config_get(CONFIG_ENTRY_SENSOR_GAIN_2 - i);
-            } else {
-              gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0 - 3 + i);
-            }
-
             sensor_values[i] = NORMALIZE(adc_reading[i], black, white);
+
+            if(1 <= i && i < SENSOR_PD_COUNT-1) {
+              double gain = 1.0;
+              if(i <= 2) {
+                gain = -config_get(CONFIG_ENTRY_SENSOR_GAIN_2 - i);
+              } else {
+                gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0 - 3 + i);
+              }
+
+              if(i == 1) {
+                mid_min = sensor_values[i];
+              } else if(i < SENSOR_PD_COUNT-1 && sensor_values[i] < mid_min) {
+                mid_min = sensor_values[i];
+              }
+
+              result += SATURATE(sensor_values[i], 0, 1) * gain;
+            }
 
             sum += sensor_values[i];
             ssum += sensor_values[i] * sensor_values[i];
-            result += SATURATE(sensor_values[i], 0, 1) * gain;
 
-            //printf("%11.4f", sensor_values[i]);
           }
+
+          //for(int16_t i = SENSOR_PD_COUNT-1; i >= 0; i--) {
+          //  printf("%11.4f", sensor_values[i]);
+          //}
           //puts("");
 
-          sensor_result = result;
           sensor_mean = sum / SENSOR_PD_COUNT;
           sensor_variance = ssum / SENSOR_PD_COUNT - sensor_mean * sensor_mean;
+
+          // latch value when line goes off the side
+          double latch_min = config_get(CONFIG_ENTRY_LATCH_MIN);
+
+          bool below_th0 = sensor_values[0] < latch_min;
+          bool below_th1 = sensor_values[SENSOR_PD_COUNT-1] < latch_min;
+
+          if(mid_min < latch_min || (below_th0 && below_th1)) {
+            sensor_result = result;
+          } else if(below_th0) {
+            sensor_result = config_get(CONFIG_ENTRY_SENSOR_GAIN_2);
+          } else if(below_th1) {
+            sensor_result = -config_get(CONFIG_ENTRY_SENSOR_GAIN_2);
+          }
 
           break;
         }

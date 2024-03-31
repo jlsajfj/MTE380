@@ -24,6 +24,11 @@ void sm_run(void) {
   const control_state_E control_state = control_getState();
 
   switch(sm_state) {
+    case SM_STATE_ALIGN:
+      if(sm_state_time >= 1000) {
+        sm_setState(SM_STATE_STANDBY);
+      }
+      break;
     case SM_STATE_UNHOOK:
       if(sm_state_time >= 100) {
         sm_setState(SM_STATE_GOTO_TARGET);
@@ -211,6 +216,11 @@ void sm_setState(sm_state_E state) {
     switch(sm_state) {
       case SM_STATE_STANDBY:
         control_setState(CONTROL_STATE_NEUTRAL);
+        break;
+
+      case SM_STATE_ALIGN:
+        control_setTarget(0);
+        control_setState(CONTROL_STATE_FOLLOW);
         break;
 
       case SM_STATE_UNHOOK:

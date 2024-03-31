@@ -53,6 +53,9 @@ void command_run(void) {
       motor_stop(M1);
       motor_stop(M2);
 
+    } else if(MATCH_CMD("align")) {
+      sm_setState(SM_STATE_ALIGN);
+
     } else if(MATCH_CMD("calibrate")) {
       sm_setState(SM_STATE_CALIBRATE);
 
