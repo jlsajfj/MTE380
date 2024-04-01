@@ -71,12 +71,14 @@ void control_run(void) {
       double input = sensor_getResult();
       double u = pid_update(&pid, input, control_reset);
 
+      double speed = SATURATE(control_target, pid_conf_sensor.output_min + u / 2, pid_conf_sensor.output_max - u / 2);
+
       if(u > 0) {
-        motor_setSpeed(M1, control_target - u / 2);
-        motor_setSpeed(M2, control_target + u / 2);
+        motor_setSpeed(M1, speed - u / 2);
+        motor_setSpeed(M2, speed + u / 2);
       } else {
-        motor_setSpeed(M1, control_target - u / 2);
-        motor_setSpeed(M2, control_target + u / 2);
+        motor_setSpeed(M1, speed - u / 2);
+        motor_setSpeed(M2, speed + u / 2);
       }
 
       break;

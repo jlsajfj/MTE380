@@ -64,26 +64,23 @@ void sensor_run(void) {
 
             sensor_values[i] = NORMALIZE(adc_reading[i], black, white);
 
-            if(1 <= i && i < SENSOR_PD_COUNT-1) {
-              double gain = 1.0;
-              if(i <= 2) {
-                gain = -config_get(CONFIG_ENTRY_SENSOR_GAIN_2 - i);
-              } else {
-                gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0 - 3 + i);
-              }
-
-              if(i == 1) {
-                mid_min = sensor_values[i];
-              } else if(i < SENSOR_PD_COUNT-1 && sensor_values[i] < mid_min) {
-                mid_min = sensor_values[i];
-              }
-
-              result += SATURATE(sensor_values[i], 0, 1) * gain;
+            double gain = 1.0;
+            if(i <= 2) {
+              gain = -config_get(CONFIG_ENTRY_SENSOR_GAIN_2 - i);
+            } else {
+              gain = config_get(CONFIG_ENTRY_SENSOR_GAIN_0 - 3 + i);
             }
+
+            result += SATURATE(sensor_values[i], 0, 1) * gain;
 
             sum += sensor_values[i];
             ssum += sensor_values[i] * sensor_values[i];
 
+            if(i == 1) {
+              mid_min = sensor_values[i];
+            } else if(i < SENSOR_PD_COUNT-1 && sensor_values[i] < mid_min) {
+              mid_min = sensor_values[i];
+            }
           }
 
           //for(int16_t i = SENSOR_PD_COUNT-1; i >= 0; i--) {
@@ -100,12 +97,8 @@ void sensor_run(void) {
           bool below_th0 = sensor_values[0] < latch_min;
           bool below_th1 = sensor_values[SENSOR_PD_COUNT-1] < latch_min;
 
-          if(mid_min < latch_min || (below_th0 && below_th1)) {
+          if(mid_min < latch_min || (below_th0 && below_th1) || fabs(result) > fabs(sensor_result)) {
             sensor_result = result;
-          } else if(below_th0) {
-            sensor_result = config_get(CONFIG_ENTRY_SENSOR_GAIN_2);
-          } else if(below_th1) {
-            sensor_result = -config_get(CONFIG_ENTRY_SENSOR_GAIN_2);
           }
 
           break;
