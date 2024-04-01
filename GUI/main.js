@@ -223,11 +223,29 @@ function updateConf(conf_name) {
     doSend('set ' + conf_name + ' ' + new_value);
 }
 
+function incConf(conf_name, sz) {
+    let conf_row = document.getElementById('conf-' + conf_name);
+    let new_value = parseFloat(conf_row.childNodes[1].value + sz);
+    doSend('set ' + conf_name + ' ' + new_value);
+}
+
 function configSend(val) {
     console.log(val);
-    if(event.key == 'Enter'){
+    if(event.key == 'Enter') {
         event.preventDefault();
         updateConf(val);
+    } else if(event.key == 'ArrowLeft') {
+        event.preventDefault();
+        incConf(val, -0.01);
+    } else if(event.key == 'ArrowRight') {
+        event.preventDefault();
+        incConf(val, 0.01);
+    } else if(event.key == 'ArrowDown') {
+        event.preventDefault();
+        incConf(val, -0.05);
+    } else if(event.key == 'ArrowUp') {
+        event.preventDefault();
+        incConf(val, 0.05);
     }
 }
 
