@@ -66,18 +66,18 @@ void sm_run(void) {
       break;
 
     case SM_STATE_AIM:
-      if(control_state == CONTROL_STATE_NEUTRAL || sm_state_time > 5000) {
-        sm_setState(SM_STATE_PUSH_2);
-      }
-      break;
-
-    case SM_STATE_PUSH_2:
-      if(control_state == CONTROL_STATE_NEUTRAL) {
+      if(control_state == CONTROL_STATE_BRAKE ||
+         control_state == CONTROL_STATE_NEUTRAL)
+      {
         sm_setState(SM_STATE_KICK);
       }
       break;
 
     case SM_STATE_KICK:
+      sm_setState(SM_STATE_PUSH_2);
+      break;
+
+    case SM_STATE_PUSH_2:
       if(control_state == CONTROL_STATE_NEUTRAL) {
         sm_setState(SM_STATE_TURN_BACK);
       }
@@ -123,12 +123,6 @@ void sm_run(void) {
       break;
 
     case SM_STATE_TURN_FORWARD:
-      if(control_state == CONTROL_STATE_NEUTRAL) {
-        sm_setState(SM_STATE_HOME_BRAKE_2);
-      }
-      break;
-
-    case SM_STATE_HOME_BRAKE_2:
       if(control_state == CONTROL_STATE_NEUTRAL) {
         sm_setState(SM_STATE_BACKIN);
       }
@@ -236,7 +230,6 @@ void sm_setState(sm_state_E state) {
 
       case SM_STATE_TARGET_BRAKE:
       case SM_STATE_HOME_BRAKE:
-      case SM_STATE_HOME_BRAKE_2:
       case SM_STATE_TURN_BRAKE:
       case SM_STATE_RECORD_BRAKE:
         control_setState(CONTROL_STATE_BRAKE);
@@ -260,7 +253,6 @@ void sm_setState(sm_state_E state) {
 
       case SM_STATE_KICK:
         servo_setPosition(S1, config_get(CONFIG_ENTRY_SERVO_UNLOCK));
-        control_setState(CONTROL_STATE_BRAKE);
         break;
 
       case SM_STATE_TURN_BACK:

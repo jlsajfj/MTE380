@@ -132,13 +132,13 @@ void control_run(void) {
 
     case CONTROL_STATE_TURN:
     {
-      double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
+      double speed = config_get(CONFIG_ENTRY_TURN_SPEED);
       double wheel_dist = config_get(CONFIG_ENTRY_WHEEL_DIST);
       double target = control_target / 180.0 * M_PI;
 
       int32_t c1 = motor_getCount(M1);
       int32_t c2 = motor_getCount(M2);
-      double theta = (c2 - c1) / MOTOR_MM_TO_COUNT(wheel_dist);
+      double theta = (double) (c2 - c1) / MOTOR_MM_TO_COUNT(wheel_dist);
 
       if(target < 0) {
         speed = -speed;
@@ -148,7 +148,7 @@ void control_run(void) {
       motor_setSpeed(M2,  speed);
 
       if(fabs(theta) > fabs(target)) {
-        control_setState(CONTROL_STATE_NEUTRAL);
+        control_setState(CONTROL_STATE_BRAKE);
       }
 
       break;
@@ -158,12 +158,12 @@ void control_run(void) {
     {
       double radius = config_get(CONFIG_ENTRY_ARC_RADIUS);
       double wheel_dist = config_get(CONFIG_ENTRY_WHEEL_DIST);
-      double speed = config_get(CONFIG_ENTRY_PUSH_SPEED);
+      double speed = config_get(CONFIG_ENTRY_ARC_SPEED);
       double target = control_target / 180.0 * M_PI;
 
       int32_t c1 = motor_getCount(M1);
       int32_t c2 = motor_getCount(M2);
-      double theta = (c2 - c1) / MOTOR_MM_TO_COUNT(wheel_dist) * 2;
+      double theta = (double) (c2 - c1) / MOTOR_MM_TO_COUNT(wheel_dist);
 
       double ratio = 1 - wheel_dist / radius / 2;
 
