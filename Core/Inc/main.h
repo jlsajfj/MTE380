@@ -63,12 +63,12 @@ void Error_Handler(void);
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
-#define Servo2_Pin GPIO_PIN_5
-#define Servo2_GPIO_Port GPIOA
 #define Sense_Batt_Pin GPIO_PIN_4
 #define Sense_Batt_GPIO_Port GPIOC
 #define Servo1_Pin GPIO_PIN_10
 #define Servo1_GPIO_Port GPIOB
+#define Servo2_Pin GPIO_PIN_13
+#define Servo2_GPIO_Port GPIOB
 #define MtrEnc_2A_Pin GPIO_PIN_6
 #define MtrEnc_2A_GPIO_Port GPIOC
 #define MtrEnc_2B_Pin GPIO_PIN_7
