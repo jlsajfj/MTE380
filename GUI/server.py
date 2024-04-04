@@ -28,7 +28,7 @@ Handler.callback = send_robot
 
 def send(code, data):
     packed_data = {
-        "code": code.name,
+        "code": SB(code).name,
         "data": data,
     }
 

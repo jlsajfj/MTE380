@@ -67,14 +67,14 @@ loading 19 points
         turnback = 200.000000
           backin = -200.000000
           backup = -100.000000
-           push1 = 50.000000
+           push1 = 55.000000
            push2 = 50.000000
       push_speed = 2.000000
           target = -45.000000
       arc_radius = 60.000000
       speed_rise = 0.200000
       speed_fall = 0.050000
-     fast_offset = 120.000000
+     fast_offset = 130.000000
      slow_offset = -300.000000
    finish_offset = 0.000000
       speed_fast = 2.000000
