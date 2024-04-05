@@ -55,6 +55,19 @@ void command_run(void) {
 
     } else if(MATCH_CMD("align")) {
       sm_setState(SM_STATE_ALIGN);
+    } else if(MATCH_CMD_S("play")) {
+      music_play(sarg);
+
+    } else if(MATCH_CMD("play")) {
+      music_play(NULL);
+
+    } else if(MATCH_CMD("pause")) {
+      music_pause();
+
+    } else if(MATCH_CMD_D("buzz")) {
+      control_setState(CONTROL_STATE_NEUTRAL);
+      motor_buzz(M1, darg);
+      motor_buzz(M2, darg);
 
     } else if(MATCH_CMD("calibrate")) {
       sm_setState(SM_STATE_CALIBRATE);
